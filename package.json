@@ -2,11 +2,32 @@
   "name": "player",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "contBuild": "watch \"npm run build:dev\" src",
+    "devServer": "npm-run-all -p testServer contBuild",
+    "start": "npm run devServer",
+    "build:dev": "webpack --mode=development --env dev --env app.conf=\"dev\"",
+    "build:prod": "webpack --mode=production --env prod --env app.conf=\"prod\"",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "testServer": "http-server --cors -p 8084 --silent"
   },
-  "keywords": [],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/basil79/player.git"
+  },
+  "keywords": [
+    "video",
+    "hls",
+    "mpeg-dash"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "http-server": "^14.0.0",
+    "npm-run-all": "^4.1.5",
+    "watch": "^0.13.0",
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1"
+  }
 }
