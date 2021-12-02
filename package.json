@@ -17,6 +17,10 @@
     "url": "https://github.com/basil79/player.git"
   },
   "keywords": [
+    "html5-video-player",
+    "video-player",
+    "html5-video",
+    "html-video",
     "video",
     "hls",
     "mpeg-dash"
