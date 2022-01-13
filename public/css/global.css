@@ -1,0 +1,12 @@
+body {
+    -webkit-font-smoothing: antialiased;
+    font-family: Arial;
+    font-size: 16px;
+    line-height: 24px;
+}
+input, button, textarea, select, optgroup, option {
+    font-family: inherit;
+    font-size: inherit;
+    font-style: inherit;
+    font-weight: inherit;
+}
