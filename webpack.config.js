@@ -1,16 +1,23 @@
+const webpack = require('webpack');
+const TerserPlugin = require('terser-webpack-plugin');
+const { name, version } = require('./package.json');
 
-const TerserPlugin = require("terser-webpack-plugin");
+module.exports = function(env, args) {
 
-module.exports = function(env) {
-    const app = env.app;
+    let plugins = args.mode === 'production' ? [] : [new webpack.BannerPlugin({
+        banner: `${name} v${version} ${args.mode}\nUpdated : ${(new Date()).toISOString().substring(0, 10)}`
+    })]
+
     return {
-        entry : "./src/index.js",
+        entry : './src/index.js',
         output: {
-            path: __dirname + "/public/js",
-            filename: "player.js"
+            path: __dirname + '/public/js',
+            filename: 'player.js',
+            library: 'ssp4'
         },
+        plugins: plugins,
         optimization: {
-            minimize: app.conf === "prod",
+            minimize: args.mode === 'production',
             minimizer: [new TerserPlugin({
                 parallel : 4,
                 extractComments: true,

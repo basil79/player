@@ -32,11 +32,22 @@
 </head>
 <body>
 <h1>HTML5 Video Player</h1>
+
 <div id="container">
     <div id="video-container">
-        <video id="video-element" webkit-playsinline="true" playsinline="true"></video>
+        <video id="video-element" webkit-playsinline="true" playsinline="true" preload="auto" crossorigin="anonymous" poster="examples/elephantsdream/poster.png" src="examples/elephantsdream/ed_hd.mp4"></video>
         <div id="ad-container"></div>
     </div>
 </div>
+
+<h3>Features:</h3>
+<ul>
+    <li>Detect Visibility</li>
+    <li>Floating</li>
+</ul>
+
+
+<script src="js/player.js"></script>
+<script src="js/index.js"></script>
 </body>
 </html>
