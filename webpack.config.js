@@ -11,7 +11,7 @@ module.exports = function(env, args) {
     return {
         entry : './src/index.js',
         output: {
-            path: __dirname + '/public/js',
+            path: __dirname + (args.mode === 'production' ? '/dist' : '/public/js'),
             filename: 'player.js',
             library: 'ssp4'
         },
@@ -26,8 +26,8 @@ module.exports = function(env, args) {
                         drop_console: true,
                         ecma: 2015
                     }
-                }
-            })]
-        }
+                },
+            })],
+        },
     }
 }

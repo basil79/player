@@ -1,4 +1,4 @@
-import {AdsManager} from "ads-manager";
+import { AdsManager } from 'ads-manager';
 
 const Player = function(options = {}) {
 
