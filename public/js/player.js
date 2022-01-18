@@ -1,6 +1,6 @@
 /*!
  * player v1.0.0 development
- * Updated : 2022-01-13
+ * Updated : 2022-01-18
  */
 /*
  * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
@@ -42,7 +42,7 @@ eval("!function(e,t){ true?t(exports):0}(this,(function(e){\"use strict\";functi
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"tv\": () => (/* binding */ tv)\n/* harmony export */ });\n/* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./player */ \"./src/player.js\");\n\n\nconst tv = {\n    Player : _player__WEBPACK_IMPORTED_MODULE_0__.Player\n}\n\n\n\n\n//# sourceURL=webpack://ssp4/./src/index.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"tv\": () => (/* binding */ tv)\n/* harmony export */ });\n/* harmony import */ var _player__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./player */ \"./src/player.js\");\n\n\nconst tv = {\n  Player: _player__WEBPACK_IMPORTED_MODULE_0__.Player\n}\n\n\n\n\n//# sourceURL=webpack://ssp4/./src/index.js?");
 
 /***/ }),
 
@@ -53,7 +53,18 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"Player\": () => (/* binding */ Player)\n/* harmony export */ });\n/* harmony import */ var ads_manager__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ads-manager */ \"./node_modules/ads-manager/src/ads-manager.js\");\n\n\nconst Player = function(options = {}) {\n\n    console.log('player', options);\n\n    if(options.hasOwnProperty('adContainer')) {\n        const adsManager = new ads_manager__WEBPACK_IMPORTED_MODULE_0__.AdsManager(options.adContainer);\n        console.log(adsManager);\n    }\n\n}\n\n\n\n\n//# sourceURL=webpack://ssp4/./src/player.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"Player\": () => (/* binding */ Player)\n/* harmony export */ });\n/* harmony import */ var ads_manager__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ads-manager */ \"./node_modules/ads-manager/src/ads-manager.js\");\n/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ \"./src/utils.js\");\n\n\n\nconst Player = function(element, options = {}) {\n  console.log('player', element, options);\n\n  if(!(element instanceof Element || element instanceof HTMLDocument)) {\n    throw new Error('player element is not defined');\n  }\n\n  // Player HTML element\n  this._element = element;\n\n  this._attributes = {\n    autoplay : true,\n    muted : true,\n    hidden: false,\n    fullscreen : false,\n    visibilityThreshold: 50, // 50%\n    intersectionRatio: 1,\n    get visible() {\n      if(this.hidden) {\n        return false;\n      } else if(this.fullscreen) {\n        return true;\n      }\n      return (0,_utils__WEBPACK_IMPORTED_MODULE_1__.visible)(this.intersectionRatio, this.visibilityThreshold);\n    }\n  };\n\n  this._eventCallbacks = {};\n\n  // Observe visibility\n  (0,_utils__WEBPACK_IMPORTED_MODULE_1__.observeVisibility)(this._element, (intersectionEntries) => {\n    const { intersectionRatio } = intersectionEntries[intersectionEntries.length - 1];\n    console.log('IR > ', intersectionRatio);\n    this._attributes.intersectionRatio = intersectionRatio;\n  });\n\n  if(options.hasOwnProperty('adContainer')) {\n    const adsManager = new ads_manager__WEBPACK_IMPORTED_MODULE_0__.AdsManager(options.adContainer);\n    console.log(adsManager);\n  }\n\n}\nPlayer.prototype.addEventListener = function(eventName, callback, context) {\n  const giveCallback = callback.bind(context);\n  this._eventCallbacks[eventName] = giveCallback;\n}\nPlayer.prototype.removeEventListener = function(eventName) {\n  if(eventName in this._eventCallbacks) {\n    this._eventCallbacks[eventName] = null;\n  }\n}\nPlayer.prototype.play = function(source) {\n\n  if(source) {\n    // TODO: play source\n  }\n\n  console.log('PL > play > Visible', this._attributes.visible);\n\n}\nPlayer.prototype.pause = function() {\n\n}\nPlayer.prototype.destroy = function() {\n  // TODO: destroy\n}\n\n\n\n\n//# sourceURL=webpack://ssp4/./src/player.js?");
+
+/***/ }),
+
+/***/ "./src/utils.js":
+/*!**********************!*\
+  !*** ./src/utils.js ***!
+  \**********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"observeVisibility\": () => (/* binding */ observeVisibility),\n/* harmony export */   \"visible\": () => (/* binding */ visible)\n/* harmony export */ });\n/**\nutils.js\n */\n\n// IntersectionObserver\n// Detect element visibility\n\nfunction observeVisibility(el, callback) {\n  const observer = new IntersectionObserver(callback, {\n    root: null, // viewport\n    threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] // every 10%\n  });\n  try {\n    observer.observe(el);\n  } catch (e) {\n    console.log('IntersectionObserver setup failed', e);\n  }\n  return observer\n}\n\nfunction visible(intersectionRatio, threshold) {\n  return intersectionRatio * 100 >= threshold\n}\n\n\n\n\n//# sourceURL=webpack://ssp4/./src/utils.js?");
 
 /***/ })
 
