@@ -4,7 +4,7 @@
   let adContainer = document.getElementById('ad-container');
 
   // player 1
-  const player1 = new ssp4.tv.Player(document.getElementById('player1'),{
+  const player1 = new ssp4.tv.Player(document.getElementById('player1'), {
     width: 'auto', // not required
     height: 'auto', // not required
     autoplay: true, // video autoplay
@@ -48,29 +48,38 @@
       },
       customMacros: []
     },
-  });
+  }, function() {
+    console.log('player1 is ready', this);
 
+    this.play();
+  });
+  player1.addEventListener('PlayerVisibilityChange', function(visible) {
+    console.log('player1 visibility change >', visible);
+  });
   console.log(player1);
 
 
-  player1.play();
-
-
   // player 2
-  const player2 = new ssp4.tv.Player(document.getElementById('player2'), {});
+  const player2 = new ssp4.tv.Player(document.getElementById('player2'), {}, function() {
+    console.log('player2 is ready', this);
+  });
 
   console.log(player2);
-
-  player2.play();
 
 
   // player 3
   const player3 = new ssp4.tv.Player(document.getElementById('player3'), {});
-
+  player3.addEventListener('PlayerReady', function() {
+    console.log('player3 is ready', player3, player3.visible(), player3.hidden());
+  });
+  player3.addEventListener('PlayerVisibilityChange', function(visible) {
+    console.log('player3 visibility change >', visible);
+  });
   console.log(player3);
 
-  player3.play();
-
+  const player4 = new ssp4.tv.Player();
+  player4.play();
+  console.log(player4);
 
 
 })()

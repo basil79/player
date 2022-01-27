@@ -1,7 +1,8 @@
-import { Player } from './player';
+import { Player, Players } from './player';
 
 const tv = {
-  Player
+  Player,
+  Players
 }
 
 export { tv }
