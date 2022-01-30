@@ -34,7 +34,7 @@
   "author": "Basil Goldman",
   "license": "Apache-2.0",
   "dependencies": {
-    "ads-manager": "^1.0.9"
+    "ads-manager": "^1.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.16.5",
