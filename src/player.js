@@ -70,7 +70,7 @@ const Player = function(el, options = {}, callback) {
 Player.prototype.createSlot = function() {
   this._slot = document.createElement('div');
   this._slot.classList.add('video-container');
-  this._el.classList.add('ssp4-tv-player');
+  this._el.classList.add('adserve-tv-player');
   this._el.appendChild(this._slot);
   this.createVideoSlot();
 }
@@ -157,7 +157,7 @@ Player.prototype.destroy = function() {
 
 let Players = [{}];
 (function() {
-  Players = window.ssp4 && window.ssp4.tv ? window.ssp4.tv.Players : []
+  Players = window.adserve && window.adserve.tv ? window.adserve.tv.Players : []
 })();
 
 export { Player, Players }
