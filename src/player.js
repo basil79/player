@@ -40,8 +40,8 @@ const Player = function(el, options = {}, callback) {
 
   this._attributes = {
     isReady: false, // TODO: change to true when ready
-    src: null,
     poster: null,
+    src: null,
     autoplay: true,
     preload: false,
     loop: false,
@@ -67,8 +67,10 @@ const Player = function(el, options = {}, callback) {
   this._options = {
     width: 'auto',
     height: 'auto',
-    src: null,
+    title: null,
+    url: null,
     poster: null,
+    src: null,
     autoplay: true,
     loop: false,
     muted: true,
@@ -149,6 +151,7 @@ Player.prototype.createVideoSlot = function() {
   // Set source
   this.setSrc(this._options.src);
   // Poster
+  this.setPoster(this._options.poster);
 
   // TODO:
   setTimeout(() => {
@@ -307,14 +310,13 @@ Player.prototype.setSrc = function(source) {
         while (!(bf.start(range) <= time && time <= bf.end(range))) {
           range += 1;
         }
+        const loadStartPercentage = bf.start(range) / event.target.duration;
+        const loadEndPercentage = bf.end(range) / event.target.duration;
+        const loadPercentage = loadEndPercentage - loadStartPercentage;
+
+        //console.log('loading...', loadPercentage);
+        this._timeline.updateBuffer(loadPercentage);
       } catch (e) {}
-      const loadStartPercentage = bf.start(range) / event.target.duration;
-      const loadEndPercentage = bf.end(range) / event.target.duration;
-      const loadPercentage = loadEndPercentage - loadStartPercentage;
-
-      //console.log('loading...', loadPercentage);
-      this._timeline.updateBuffer(loadPercentage);
-
     }, false);
 
     this._videoSlot.addEventListener('timeupdate', (event) => {
@@ -346,8 +348,12 @@ Player.prototype.setSrc = function(source) {
       this._playButton.setState(false);
     }, false);
 
+
     // Set source
     this._videoSlot.setAttribute('src', this._attributes.src);
+    if(this._options.title) {
+      this._header && this._header.setTitle(this._options.title, this._options.url);
+    }
 
     // Play button
     this._playButton && this._playButton.onClick(hasPlay => {
@@ -368,6 +374,16 @@ Player.prototype.setSrc = function(source) {
 }
 Player.prototype.getCurrentSrc = function() {
   return this._attributes.src;
+}
+Player.prototype.setPoster = function(poster) {
+  if(!poster) {
+    return
+  }
+  this._attributes.poster = poster
+  this._videoSlot.poster = this._attributes.poster;
+}
+Player.prototype.getPoster = function() {
+  return this._attributes.poster;
 }
 Player.prototype.load = function() {
 

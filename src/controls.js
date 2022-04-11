@@ -10,9 +10,14 @@ function Header() {
       const link = document.createElement('a');
       link.innerHTML = text;
       link.href = url;
+      link.target = '_blank';
+      link.classList.add('title');
       header.appendChild(link);
     } else {
-      header.innerHTML = text;
+      const title = document.createElement('span');
+      title.classList.add('title');
+      title.innerHTML = text;
+      header.appendChild(title);
     }
   }
   this.hide = () => {
@@ -123,7 +128,6 @@ function PlayButton() {
 function NextButton() {
   const nextButton = document.createElement('button');
   nextButton.classList.add('next');
-  nextButton.innerHTML = 'Next';
 
   this.render = () => nextButton;
   this.hide = () => {
@@ -187,7 +191,6 @@ function BigPlayButton() {
 function FullscreenButton() {
   const fullscreenButton = document.createElement('button');
   fullscreenButton.classList.add('fullscreen');
-  fullscreenButton.innerHTML = 'Fullscreen';
 
   this.render = () => fullscreenButton;
   this.hide = () => {
