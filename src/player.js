@@ -1,5 +1,15 @@
 import { AdsManager } from 'ads-manager';
 import {getMimeType, observeVisibility, supportsHLS, visible} from './utils';
+import {
+  BigPlayButton,
+  FullscreenButton, Gradient, Header,
+  NextButton,
+  PlayButton,
+  PrevButton,
+  Timeline,
+  Timer,
+  VolumeButton
+} from './controls';
 
 const Player = function(el, options = {}, callback) {
   console.log('player', el, options);
@@ -13,6 +23,20 @@ const Player = function(el, options = {}, callback) {
 
   this._slot = null;
   this._videoSlot = null;
+
+  // Header
+  this._header = null;
+  // Gradient
+  this._gradient = null;
+
+  // Controls
+  this._timeline = null;
+  this._prevButton = null;
+  this._playButton = null;
+  this._nextButton = null;
+  this._timer = null;
+  this._fullscreenButton = null;
+  this._bigPlayButton = null;
 
   this._attributes = {
     isReady: false, // TODO: change to true when ready
@@ -71,12 +95,21 @@ const Player = function(el, options = {}, callback) {
     this.onVisibilityChange();
   });
 
+  // Hover
+  this._el.addEventListener('mouseover', (event) => {
+    this._el.classList.add('hovered');
+  }, false);
+  this._el.addEventListener('mouseout', (event) => {
+    this._el.classList.remove('hovered');
+  }, false);
+
   // Tab change, document hidden
   // TODO: 1 time
   document.addEventListener('visibilitychange', () => {
     this.onVisibilityChange();
   });
 
+  // Create slot
   this.createSlot();
 
 
@@ -98,6 +131,7 @@ Player.prototype.createVideoSlot = function() {
   this._videoSlot = document.createElement('video');
   this._videoSlot.setAttribute('webkit-playsinline', true);
   this._videoSlot.setAttribute('playsinline', true);
+  // x-webkit-airplay="allow"
   //this._videoSlot.setAttribute('preload', 'auto');
   this._videoSlot.setAttribute('tabindex', -1);
   this._videoSlot.style.backgroundColor = 'rgb(0, 0, 0)'; // TODO: remove
@@ -106,10 +140,15 @@ Player.prototype.createVideoSlot = function() {
 
   console.log(this._attributes.visible);
 
+  // Create controls
+  if(this._options.controls) {
+    this.createControls(); // TODO:
+  }
+
 
   // Set source
+  this.setSrc(this._options.src);
   // Poster
-
 
   // TODO:
   setTimeout(() => {
@@ -123,6 +162,67 @@ Player.prototype.createVideoSlot = function() {
     this.onPlayerReady();
   }, 75);
 
+}
+Player.prototype.createControls = function() {
+  console.log('create controls');
+
+  // Overlay
+  const overlay = document.createElement('div');
+  overlay.classList.add('overlay');
+
+  // Header
+  this._header = new Header();
+  overlay.appendChild(this._header.render());
+
+  // Gradient
+  this._gradient = new Gradient();
+  overlay.appendChild(this._gradient.render());
+
+  // Timeline
+  this._timeline = new Timeline();
+  overlay.appendChild(this._timeline.render());
+
+  // Controls
+  const controls = document.createElement('div');
+  controls.classList.add('controls');
+
+  // Prev Button
+  this._prevButton = new PrevButton();
+  controls.appendChild(this._prevButton.render());
+  // TODO:
+  this._prevButton.hide();
+
+  // Play Button
+  this._playButton = new PlayButton();
+  controls.appendChild(this._playButton.render());
+
+  // Next Button
+  this._nextButton = new NextButton();
+  controls.appendChild(this._nextButton.render());
+  // TODO:
+  this._nextButton.hide();
+
+  // Volume Button
+  this._volumeButton = new VolumeButton();
+  controls.appendChild(this._volumeButton.render());
+
+  // Timer
+  this._timer = new Timer();
+  controls.appendChild(this._timer.render());
+
+  // Fullscreen Button
+  this._fullscreenButton = new FullscreenButton();
+  controls.appendChild(this._fullscreenButton.render());
+
+  // Append controls to overlay
+  overlay.appendChild(controls);
+
+  // Big Play
+  this._bigPlayButton = new BigPlayButton();
+  overlay.appendChild(this._bigPlayButton.render());
+
+
+  this._el.appendChild(overlay);
 }
 Player.prototype.onVisibilityChange = function() {
   const value = this._attributes.visible;
@@ -162,37 +262,18 @@ Player.prototype.setSrc = function(source) {
     return;
   }
 
-  // String, source Object, Array of Source Objects
-  console.log('set > source', source);
-}
-Player.prototype.getCurrentSrc = function() {
-  return this._attributes.src;
-}
-Player.prototype.load = function() {
-
-}
-Player.prototype.play = function(source) {
-
-  if(source) {
-    // TODO: play source
-    console.log('play > source', source);
-
-  } else {
-    // Try to play source from options
-    if(this._options.src
-      && typeof this._options.src === 'string') {
-      console.log('source exists', this._options.src);
-      // Set source, detect mime type by file extension
-      this._attributes.src = this._options.src;
-    }
+  // Try to play source from options
+  if(source && typeof source === 'string') {
+    console.log('source exists', source);
+    // Set source, detect mime type by file extension
+    this._attributes.src = source;
   }
 
-  console.log('play > visible', this._attributes.visible, source);
-
   if(this._attributes.src) {
-
     this._attributes.mimeType = getMimeType(this._attributes.src);
     this._attributes.supportsHLS = supportsHLS();
+
+    console.log('play > source mime type is', this._attributes.mimeType);
 
     // Check if HLS
     if(this._attributes.mimeType === 'application/x-mpegurl'
@@ -206,11 +287,105 @@ Player.prototype.play = function(source) {
       return;
     }
 
+    // TODO: _videoSlot
+    // Attach events
+    this._videoSlot.addEventListener('play', (event) => {
+      // Update play button
+      this._playButton && this._playButton.setState(true);
+    }, false);
+
+    this._videoSlot.addEventListener('pause', (event) => {
+      // Update play button
+      this._playButton && this._playButton.setState(false);
+    }, false);
+
+    this._videoSlot.addEventListener('progress', (event) => {
+      let range = 0;
+      const bf = event.target.buffered;
+      const time = event.target.currentTime;
+      try {
+        while (!(bf.start(range) <= time && time <= bf.end(range))) {
+          range += 1;
+        }
+      } catch (e) {}
+      const loadStartPercentage = bf.start(range) / event.target.duration;
+      const loadEndPercentage = bf.end(range) / event.target.duration;
+      const loadPercentage = loadEndPercentage - loadStartPercentage;
+
+      //console.log('loading...', loadPercentage);
+      this._timeline.updateBuffer(loadPercentage);
+
+    }, false);
+
+    this._videoSlot.addEventListener('timeupdate', (event) => {
+      const duration = event.target.duration;
+      const currentTime = event.target.currentTime;
+      const percentPlayed = currentTime * 100.0 / duration;
+      const remainingTime = duration - currentTime;
+
+      // Update timeline
+      if(this._timeline) {
+        this._timeline.updateProgress(currentTime > 0 && duration > 0 ? currentTime / duration : 0);
+        //console.log('buffer', getBuffer(currentTime) > 0 && duration > 0 ? getBuffer(currentTime) / duration : 0);
+      }
+
+      // Update timer
+      this._timer && this._timer.updateTimeElapsed(event.target.currentTime);
+
+    }, false);
+
+    this._videoSlot.addEventListener('loadedmetadata', (event) => {
+      const duration = event.target.duration;
+      // Update timer
+      this._timer && this._timer.setDuration(duration);
+
+    }, false);
+
+    this._videoSlot.addEventListener('ended', (event) => {
+      console.log('ended');
+      this._playButton.setState(false);
+    }, false);
+
     // Set source
     this._videoSlot.setAttribute('src', this._attributes.src);
 
+    // Play button
+    this._playButton && this._playButton.onClick(hasPlay => {
+      if(hasPlay) {
+        this._videoSlot.pause();
+      } else {
+        if(this._options.muted) {
+          this._videoSlot.muted = this._options.muted;
+        }
+        this._videoSlot.play();
+      }
+    });
+  }
+
+  // TODO:
+  // String, source Object, Array of Source Objects
+  console.log('set > source', source);
+}
+Player.prototype.getCurrentSrc = function() {
+  return this._attributes.src;
+}
+Player.prototype.load = function() {
+
+}
+Player.prototype.play = function(source) {
+
+  if(source) {
+    // Try to play source from given source
+    this.setSrc(source);
+  }
+
+  console.log('play > visible', this._attributes.visible, source);
+
+  if(this._attributes.src) {
+
+    console.log('play > source exists > try to play', this._attributes.mimeType, this._attributes.src)
     this._videoSlot.muted = true;
-    this._videoSlot.load()
+    //this._videoSlot.load();
     // Play
     this._videoSlot.play();
 
