@@ -1,6 +1,3 @@
-/**
-utils.js
- */
 
 // IntersectionObserver
 // Detect element visibility
@@ -68,11 +65,27 @@ function supportsHLS() {
   return document.createElement('video').canPlayType('application/x-mpegurl');
 }
 
+function toHHMMSS(seconds) {
+  let from = 11;
+  let length = 8;
+  if(seconds < 3600) {
+    from = 14;
+    length = 5;
+  }
+  return new Date(seconds * 1000).toISOString().substr(from, length)
+}
+
+function getBuffer(value) {
+  return value + .1
+}
+
 export {
   observeVisibility,
   visible,
   mimeTypes,
   getMimeType,
   getFileExtension,
-  supportsHLS
+  supportsHLS,
+  toHHMMSS,
+  getBuffer
 }
