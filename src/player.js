@@ -1,5 +1,13 @@
 import { AdsManager } from 'ads-manager';
-import {getMimeType, observeVisibility, supportsHLS, visible} from './utils';
+import {
+  existFullscreen,
+  getMimeType,
+  isFullscreen,
+  observeVisibility,
+  requestFullscreen,
+  supportsHLS,
+  visible
+} from './utils';
 import {
   BigPlayButton,
   FullscreenButton, Gradient, Header,
@@ -40,8 +48,8 @@ const Player = function(el, options = {}, callback) {
 
   this._attributes = {
     isReady: false, // TODO: change to true when ready
-    src: null,
     poster: null,
+    src: null,
     autoplay: true,
     preload: false,
     loop: false,
@@ -67,8 +75,10 @@ const Player = function(el, options = {}, callback) {
   this._options = {
     width: 'auto',
     height: 'auto',
-    src: null,
+    title: null,
+    url: null,
     poster: null,
+    src: null,
     autoplay: true,
     loop: false,
     muted: true,
@@ -82,7 +92,8 @@ const Player = function(el, options = {}, callback) {
 
   this.EVENTS = {
     PlayerReady: 'PlayerReady',
-    PlayerVisibilityChange: 'PlayerVisibilityChange'
+    PlayerVisibilityChange: 'PlayerVisibilityChange',
+    PlayerFullscreenChange: 'PlayerFullscreenChange'
   }
 
   this._callback = callback;
@@ -102,6 +113,15 @@ const Player = function(el, options = {}, callback) {
   this._el.addEventListener('mouseout', (event) => {
     this._el.classList.remove('hovered');
   }, false);
+
+  // Fullscreen change
+  document.addEventListener('fullscreenchange', () => {
+    this.onFullscreenChange();
+  });
+  // Webkit Fullscreen change
+  document.addEventListener('webkitfullscreenchange', () => {
+    this.onFullscreenChange();
+  });
 
   // Tab change, document hidden
   // TODO: 1 time
@@ -149,6 +169,7 @@ Player.prototype.createVideoSlot = function() {
   // Set source
   this.setSrc(this._options.src);
   // Poster
+  this.setPoster(this._options.poster);
 
   // TODO:
   setTimeout(() => {
@@ -223,6 +244,18 @@ Player.prototype.createControls = function() {
 
 
   this._el.appendChild(overlay);
+}
+Player.prototype.onFullscreenChange = function() {
+  this._attributes.fullscreen = isFullscreen(document);
+  this._fullscreenButton && this._fullscreenButton.setState(this._attributes.fullscreen);
+  this.onPlayerFullscreenChange(this._attributes.fullscreen);
+}
+Player.prototype.onPlayerFullscreenChange = function(fullscreen) {
+  if(this.EVENTS.PlayerFullscreenChange in this._eventCallbacks) {
+    if(typeof this._eventCallbacks[this.EVENTS.PlayerFullscreenChange] === 'function') {
+      this._eventCallbacks[this.EVENTS.PlayerFullscreenChange](fullscreen);
+    }
+  }
 }
 Player.prototype.onVisibilityChange = function() {
   const value = this._attributes.visible;
@@ -307,14 +340,13 @@ Player.prototype.setSrc = function(source) {
         while (!(bf.start(range) <= time && time <= bf.end(range))) {
           range += 1;
         }
+        const loadStartPercentage = bf.start(range) / event.target.duration;
+        const loadEndPercentage = bf.end(range) / event.target.duration;
+        const loadPercentage = loadEndPercentage - loadStartPercentage;
+
+        //console.log('loading...', loadPercentage);
+        this._timeline.updateBuffer(loadPercentage);
       } catch (e) {}
-      const loadStartPercentage = bf.start(range) / event.target.duration;
-      const loadEndPercentage = bf.end(range) / event.target.duration;
-      const loadPercentage = loadEndPercentage - loadStartPercentage;
-
-      //console.log('loading...', loadPercentage);
-      this._timeline.updateBuffer(loadPercentage);
-
     }, false);
 
     this._videoSlot.addEventListener('timeupdate', (event) => {
@@ -346,12 +378,16 @@ Player.prototype.setSrc = function(source) {
       this._playButton.setState(false);
     }, false);
 
+
     // Set source
     this._videoSlot.setAttribute('src', this._attributes.src);
+    if(this._options.title) {
+      this._header && this._header.setTitle(this._options.title, this._options.url);
+    }
 
     // Play button
-    this._playButton && this._playButton.onClick(hasPlay => {
-      if(hasPlay) {
+    this._playButton && this._playButton.onClick(() => {
+      if(!this._videoSlot.paused) {
         this._videoSlot.pause();
       } else {
         if(this._options.muted) {
@@ -360,6 +396,16 @@ Player.prototype.setSrc = function(source) {
         this._videoSlot.play();
       }
     });
+
+    // Fullscreen button
+    this._fullscreenButton && this._fullscreenButton.onClick(() => {
+      if(isFullscreen(document)) {
+        existFullscreen(document);
+      } else {
+        requestFullscreen(this._el);
+      }
+    });
+
   }
 
   // TODO:
@@ -368,6 +414,16 @@ Player.prototype.setSrc = function(source) {
 }
 Player.prototype.getCurrentSrc = function() {
   return this._attributes.src;
+}
+Player.prototype.setPoster = function(poster) {
+  if(!poster) {
+    return
+  }
+  this._attributes.poster = poster
+  this._videoSlot.poster = this._attributes.poster;
+}
+Player.prototype.getPoster = function() {
+  return this._attributes.poster;
 }
 Player.prototype.load = function() {
 
@@ -399,7 +455,9 @@ Player.prototype.paused = function() {
   return this._videoSlot && this._videoSlot.paused;
 }
 Player.prototype.pause = function() {
-  console.log('PL > pause');
+  if(this._videoSlot && !this._videoSlot.paused) {
+    this._videoSlot.pause();
+  }
 }
 Player.prototype.getVolume = function() {
 

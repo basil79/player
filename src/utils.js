@@ -79,6 +79,28 @@ function getBuffer(value) {
   return value + .1
 }
 
+function isFullscreen(el) {
+  return hasFullscreen(el) ? true : false
+}
+
+function hasFullscreen(el) {
+  if('fullscreenElement' in el) return el.fullscreenElement;
+  if('webkitFullscreenElement' in el) return el.webkitFullscreenElement;
+  return false;
+}
+
+function requestFullscreen(el) {
+  if('requestFullscreen' in el) return el.requestFullscreen();
+  if('webkitRequestFullscreen' in el) return el.webkitRequestFullscreen();
+  return false;
+}
+
+function existFullscreen(el) {
+  if('exitFullscreen' in el) return el.exitFullscreen();
+  if('webkitExitFullscreen' in el) return el.webkitExitFullscreen();
+  return false;
+}
+
 export {
   observeVisibility,
   visible,
@@ -87,5 +109,8 @@ export {
   getFileExtension,
   supportsHLS,
   toHHMMSS,
-  getBuffer
+  getBuffer,
+  isFullscreen,
+  requestFullscreen,
+  existFullscreen
 }
