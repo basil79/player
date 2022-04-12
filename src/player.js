@@ -1,5 +1,13 @@
 import { AdsManager } from 'ads-manager';
-import {getMimeType, observeVisibility, supportsHLS, visible} from './utils';
+import {
+  existFullscreen,
+  getMimeType,
+  isFullscreen,
+  observeVisibility,
+  requestFullscreen,
+  supportsHLS,
+  visible
+} from './utils';
 import {
   BigPlayButton,
   FullscreenButton, Gradient, Header,
@@ -84,7 +92,8 @@ const Player = function(el, options = {}, callback) {
 
   this.EVENTS = {
     PlayerReady: 'PlayerReady',
-    PlayerVisibilityChange: 'PlayerVisibilityChange'
+    PlayerVisibilityChange: 'PlayerVisibilityChange',
+    PlayerFullscreenChange: 'PlayerFullscreenChange'
   }
 
   this._callback = callback;
@@ -104,6 +113,15 @@ const Player = function(el, options = {}, callback) {
   this._el.addEventListener('mouseout', (event) => {
     this._el.classList.remove('hovered');
   }, false);
+
+  // Fullscreen change
+  document.addEventListener('fullscreenchange', () => {
+    this.onFullscreenChange();
+  });
+  // Webkit Fullscreen change
+  document.addEventListener('webkitfullscreenchange', () => {
+    this.onFullscreenChange();
+  });
 
   // Tab change, document hidden
   // TODO: 1 time
@@ -226,6 +244,18 @@ Player.prototype.createControls = function() {
 
 
   this._el.appendChild(overlay);
+}
+Player.prototype.onFullscreenChange = function() {
+  this._attributes.fullscreen = isFullscreen(document);
+  this._fullscreenButton && this._fullscreenButton.setState(this._attributes.fullscreen);
+  this.onPlayerFullscreenChange(this._attributes.fullscreen);
+}
+Player.prototype.onPlayerFullscreenChange = function(fullscreen) {
+  if(this.EVENTS.PlayerFullscreenChange in this._eventCallbacks) {
+    if(typeof this._eventCallbacks[this.EVENTS.PlayerFullscreenChange] === 'function') {
+      this._eventCallbacks[this.EVENTS.PlayerFullscreenChange](fullscreen);
+    }
+  }
 }
 Player.prototype.onVisibilityChange = function() {
   const value = this._attributes.visible;
@@ -356,8 +386,8 @@ Player.prototype.setSrc = function(source) {
     }
 
     // Play button
-    this._playButton && this._playButton.onClick(hasPlay => {
-      if(hasPlay) {
+    this._playButton && this._playButton.onClick(() => {
+      if(!this._videoSlot.paused) {
         this._videoSlot.pause();
       } else {
         if(this._options.muted) {
@@ -366,6 +396,16 @@ Player.prototype.setSrc = function(source) {
         this._videoSlot.play();
       }
     });
+
+    // Fullscreen button
+    this._fullscreenButton && this._fullscreenButton.onClick(() => {
+      if(isFullscreen(document)) {
+        existFullscreen(document);
+      } else {
+        requestFullscreen(this._el);
+      }
+    });
+
   }
 
   // TODO:
@@ -415,7 +455,9 @@ Player.prototype.paused = function() {
   return this._videoSlot && this._videoSlot.paused;
 }
 Player.prototype.pause = function() {
-  console.log('PL > pause');
+  if(this._videoSlot && !this._videoSlot.paused) {
+    this._videoSlot.pause();
+  }
 }
 Player.prototype.getVolume = function() {
 

@@ -189,10 +189,29 @@ function BigPlayButton() {
 }
 
 function FullscreenButton() {
+  let isFullscreen = false;
   const fullscreenButton = document.createElement('button');
   fullscreenButton.classList.add('fullscreen');
 
   this.render = () => fullscreenButton;
+  this.setState = (hasFullscreen) => {
+    isFullscreen = hasFullscreen;
+    if(isFullscreen) {
+      fullscreenButton.classList.add('off');
+    } else {
+      fullscreenButton.classList.remove('off');
+    }
+  }
+  this.onClick = function(callback) {
+    fullscreenButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if(callback
+        && typeof callback === 'function') {
+        callback(isFullscreen);
+      }
+    }, false);
+  }
   this.hide = () => {
     fullscreenButton.style.display = 'none';
   }
