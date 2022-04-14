@@ -378,7 +378,6 @@ Player.prototype.setSrc = function(source) {
       this._playButton.setState(false);
     }, false);
 
-
     // Set source
     this._videoSlot.setAttribute('src', this._attributes.src);
     if(this._options.title) {
