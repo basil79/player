@@ -61,6 +61,12 @@
   player1.addEventListener('PlayerFullscreenChange', function() {
     console.log('player 1 fullscreen change', player1.fullscreen());
   });
+  player1.addEventListener('PlayerVideoComplete', function() {
+    console.log('player 1 video complete');
+    if(player1.fullscreen()) {
+      player1.exitFullscreen();
+    }
+  });
   console.log(player1);
 
 

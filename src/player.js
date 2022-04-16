@@ -312,10 +312,6 @@ Player.prototype.onPlayerVolumeChange = function() {
   }
 }
 Player.prototype.onContentComplete = function() {
-  // Exit fullscreen when content complete
-  if(this.fullscreen()) {
-    this.exitFullscreen()
-  }
   this.onPlayerVideoComplete();
 }
 Player.prototype.onPlayerVideoComplete = function() {
@@ -577,10 +573,10 @@ Player.prototype.exitFullscreen = function() {
   }
 }
 Player.prototype.getWidth = function() {
-
+  return this._videoSlot.clientWidth;
 }
 Player.prototype.getHeight = function() {
-
+  return this._videoSlot.clientHeight;
 }
 Player.prototype.destroy = function() {
   // TODO: destroy
