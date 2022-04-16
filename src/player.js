@@ -312,6 +312,7 @@ Player.prototype.onPlayerVolumeChange = function() {
   }
 }
 Player.prototype.onContentComplete = function() {
+  this._el.classList.add('ended');
   this.onPlayerVideoComplete();
 }
 Player.prototype.onPlayerVideoComplete = function() {
@@ -364,12 +365,14 @@ Player.prototype.setSrc = function(source) {
 
     // Attach events
     this._videoSlot.addEventListener('play', (event) => {
+      this._el.classList.remove('ended');
       this._el.classList.remove('paused');
       // Update play button
       this._playButton && this._playButton.setState(true);
     }, false);
 
     this._videoSlot.addEventListener('pause', (event) => {
+      this._el.classList.remove('ended');
       this._el.classList.add('paused');
       // Update play button
       this._playButton && this._playButton.setState(false);
