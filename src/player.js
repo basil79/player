@@ -107,7 +107,8 @@ const Player = function(el, options = {}, callback) {
     PlayerReady: 'PlayerReady',
     PlayerVisibilityChange: 'PlayerVisibilityChange',
     PlayerFullscreenChange: 'PlayerFullscreenChange',
-    PlayerVolumeChange: 'PlayerVolumeChange'
+    PlayerVolumeChange: 'PlayerVolumeChange',
+    PlayerVideoComplete: 'PlayerVideoComplete'
   }
 
   this._callback = callback;
@@ -310,6 +311,20 @@ Player.prototype.onPlayerVolumeChange = function() {
     }
   }
 }
+Player.prototype.onContentComplete = function() {
+  // Exit fullscreen when content complete
+  if(this.fullscreen()) {
+    this.exitFullscreen()
+  }
+  this.onPlayerVideoComplete();
+}
+Player.prototype.onPlayerVideoComplete = function() {
+  if(this.EVENTS.PlayerVideoComplete in this._eventCallbacks) {
+    if(typeof this._eventCallbacks[this.EVENTS.PlayerVideoComplete] === 'function') {
+      this._eventCallbacks[this.EVENTS.PlayerVideoComplete]();
+    }
+  }
+}
 Player.prototype.addEventListener = function(eventName, callback, context) {
   console.log('add event listener', eventName);
   const giveCallback = callback.bind(context);
@@ -407,9 +422,10 @@ Player.prototype.setSrc = function(source) {
     }, false);
 
     this._videoSlot.addEventListener('ended', (event) => {
-      console.log('ended');
+      console.log('ended', event.target);
       this._playButton && this._playButton.setState(false);
-    }, false);
+      this.onContentComplete();
+    });
 
     // Set source
     this._videoSlot.setAttribute('src', this._attributes.src);
