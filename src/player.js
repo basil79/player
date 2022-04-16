@@ -28,6 +28,8 @@ const Player = function(el, options = {}, callback) {
 
   // Player HTML element
   this._el = el;
+  // Set paused
+  this._el.classList.add('paused');
 
   this._slot = null;
   this._videoSlot = null;
@@ -53,7 +55,11 @@ const Player = function(el, options = {}, callback) {
     autoplay: true,
     preload: false,
     loop: false,
+    duration: 0,
+    remainingTime: 0,
+    currentTime: 0,
     muted: true,
+    volume: 0,
     get hidden() {
       return document.hidden;
     },
@@ -82,7 +88,7 @@ const Player = function(el, options = {}, callback) {
     autoplay: true,
     loop: false,
     muted: true,
-    volume: 0,
+    volume: 1,
     controls: true,
     ads: {}
   };
@@ -90,10 +96,18 @@ const Player = function(el, options = {}, callback) {
   // Assign options
   Object.assign(this._options, options);
 
+  // Set attributed
+  this._attributes.muted = this._options.muted;
+  this._attributes.volume = this._attributes.muted ? 0 : this._options.volume;
+  if(!this._attributes.muted && this._attributes.volume == 0) {
+    this._attributes.muted = true;
+  }
+
   this.EVENTS = {
     PlayerReady: 'PlayerReady',
     PlayerVisibilityChange: 'PlayerVisibilityChange',
-    PlayerFullscreenChange: 'PlayerFullscreenChange'
+    PlayerFullscreenChange: 'PlayerFullscreenChange',
+    PlayerVolumeChange: 'PlayerVolumeChange'
   }
 
   this._callback = callback;
@@ -132,7 +146,6 @@ const Player = function(el, options = {}, callback) {
   // Create slot
   this.createSlot();
 
-
   // TODO: ads
   if(options.hasOwnProperty('adContainer')) {
     const adsManager = new AdsManager(options.adContainer);
@@ -156,6 +169,11 @@ Player.prototype.createVideoSlot = function() {
   this._videoSlot.setAttribute('tabindex', -1);
   this._videoSlot.style.backgroundColor = 'rgb(0, 0, 0)'; // TODO: remove
   this._videoSlot.classList.add('video');
+
+  if(this._attributes.muted) {
+    this._videoSlot.muted = true;
+  }
+
   this._slot.appendChild(this._videoSlot);
 
   console.log(this._attributes.visible);
@@ -225,6 +243,12 @@ Player.prototype.createControls = function() {
 
   // Volume Button
   this._volumeButton = new VolumeButton();
+  if(this._attributes.muted) {
+    this._volumeButton.setState(true);
+  } else {
+    console.log('is muted', this._attributes.muted, 'volume', this._attributes.volume)
+  }
+
   controls.appendChild(this._volumeButton.render());
 
   // Timer
@@ -279,6 +303,13 @@ Player.prototype.onPlayerVisibilityChange = function(visiblity) {
     }
   }
 }
+Player.prototype.onPlayerVolumeChange = function() {
+  if(this.EVENTS.PlayerVolumeChange in this._eventCallbacks) {
+    if(typeof this._eventCallbacks[this.EVENTS.PlayerVolumeChange] === 'function') {
+      this._eventCallbacks[this.EVENTS.PlayerVolumeChange]();
+    }
+  }
+}
 Player.prototype.addEventListener = function(eventName, callback, context) {
   console.log('add event listener', eventName);
   const giveCallback = callback.bind(context);
@@ -320,16 +351,23 @@ Player.prototype.setSrc = function(source) {
       return;
     }
 
-    // TODO: _videoSlot
     // Attach events
     this._videoSlot.addEventListener('play', (event) => {
+      this._el.classList.remove('paused');
       // Update play button
       this._playButton && this._playButton.setState(true);
     }, false);
 
     this._videoSlot.addEventListener('pause', (event) => {
+      this._el.classList.add('paused');
       // Update play button
       this._playButton && this._playButton.setState(false);
+    }, false);
+
+    this._videoSlot.addEventListener('volumechange', (event) => {
+      console.log('event > volume change', this.getVolume());
+      this._volumeButton.setState(!this.getVolume());
+      this.onPlayerVolumeChange();
     }, false);
 
     this._videoSlot.addEventListener('progress', (event) => {
@@ -345,37 +383,32 @@ Player.prototype.setSrc = function(source) {
         const loadPercentage = loadEndPercentage - loadStartPercentage;
 
         //console.log('loading...', loadPercentage);
-        this._timeline.updateBuffer(loadPercentage);
+        this._timeline && this._timeline.updateBuffer(loadPercentage);
       } catch (e) {}
     }, false);
 
     this._videoSlot.addEventListener('timeupdate', (event) => {
-      const duration = event.target.duration;
-      const currentTime = event.target.currentTime;
-      const percentPlayed = currentTime * 100.0 / duration;
-      const remainingTime = duration - currentTime;
+      const percentPlayed = event.target.currentTime * 100.0 / event.target.duration;
+      this._attributes.currentTime = event.target.currentTime;
+      this._attributes.remainingTime = event.target.duration - event.target.currentTime;
 
       // Update timeline
-      if(this._timeline) {
-        this._timeline.updateProgress(currentTime > 0 && duration > 0 ? currentTime / duration : 0);
-        //console.log('buffer', getBuffer(currentTime) > 0 && duration > 0 ? getBuffer(currentTime) / duration : 0);
-      }
-
+      this._timeline && this._timeline.updateProgress(event.target.currentTime > 0 && event.target.duration > 0 ? event.target.currentTime / event.target.duration : 0);
       // Update timer
       this._timer && this._timer.updateTimeElapsed(event.target.currentTime);
 
     }, false);
 
     this._videoSlot.addEventListener('loadedmetadata', (event) => {
-      const duration = event.target.duration;
+      this._attributes.duration = event.target.duration;
       // Update timer
-      this._timer && this._timer.setDuration(duration);
+      this._timer && this._timer.setDuration(event.target.duration);
 
     }, false);
 
     this._videoSlot.addEventListener('ended', (event) => {
       console.log('ended');
-      this._playButton.setState(false);
+      this._playButton && this._playButton.setState(false);
     }, false);
 
     // Set source
@@ -389,10 +422,24 @@ Player.prototype.setSrc = function(source) {
       if(!this._videoSlot.paused) {
         this._videoSlot.pause();
       } else {
-        if(this._options.muted) {
-          this._videoSlot.muted = this._options.muted;
+        if(this._attributes.muted) {
+          this._videoSlot.muted = true;
+          this._videoSlot.volume = 0;
+          // Set attributes
+          this._attributes.muted = true;
+          this._attributes.volume = 0;
         }
         this._videoSlot.play();
+      }
+    });
+
+    // Volume button
+    this._volumeButton && this._volumeButton.onClick(() => {
+      console.log('volume button click', this.getVolume());
+      if(this.getVolume()) {
+        this.setVolume(0)
+      } else {
+        this.setVolume(1)
       }
     });
 
@@ -438,11 +485,17 @@ Player.prototype.play = function(source) {
 
   if(this._attributes.src) {
 
-    console.log('play > source exists > try to play', this._attributes.mimeType, this._attributes.src)
-    this._videoSlot.muted = true;
-    //this._videoSlot.load();
-    // Play
-    this._videoSlot.play();
+    console.log('play > source exists > try to play', this._attributes.mimeType, this._attributes.src, this._videoSlot.paused)
+    if(this._videoSlot.paused) {
+      if(this._attributes.muted) {
+        this._videoSlot.muted = true;
+        this._videoSlot.volume = 0;
+        // Set attributes
+        this._attributes.muted = true;
+        this._attributes.volume = 0;
+      }
+      this._videoSlot.play();
+    }
 
   } else {
     // Error
@@ -459,22 +512,34 @@ Player.prototype.pause = function() {
   }
 }
 Player.prototype.getVolume = function() {
-
+  return this._videoSlot.muted ? 0 : this._videoSlot.volume;
 }
 Player.prototype.setVolume = function(value) {
-
+  // TODO: muted
+  console.log('set volume >', value, this._videoSlot.volume);
+  if(value) {
+    this._videoSlot.muted = false;
+    // Set attributes
+    this._attributes.muted = false;
+  }
+  const isVolumeChanged = value !== this._videoSlot.volume;
+  if(isVolumeChanged) {
+    console.log('set volume > volume changed')
+    this._videoSlot.volume = value;
+    this._attributes.volume = value;
+  }
 }
 Player.prototype.readyState = function() {
   return null;
 }
-Player.prototype.currentTime = function() {
-  return -1
-}
 Player.prototype.getDuration = function() {
-  return -1
+  return this._attributes.duration;
+}
+Player.prototype.getCurrentTime = function() {
+  return this._attributes.currentTime;
 }
 Player.prototype.getRemainingTime = function() {
-  return -1;
+  return this._attributes.remainingTime;
 }
 Player.prototype.visible = function() {
   return this._attributes.visible;
@@ -486,7 +551,14 @@ Player.prototype.fullscreen = function() {
   return this._attributes.fullscreen;
 }
 Player.prototype.requestFullscreen = function() {
-  // TODO:
+  if(this._attributes.src && !isFullscreen(document)) {
+    requestFullscreen(this._el);
+  }
+}
+Player.prototype.exitFullscreen = function() {
+  if(this._attributes.src && isFullscreen(document)) {
+    existFullscreen(document);
+  }
 }
 Player.prototype.getWidth = function() {
 
