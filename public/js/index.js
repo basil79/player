@@ -58,6 +58,9 @@
   player1.addEventListener('PlayerVisibilityChange', function(visible) {
     console.log('player1 visibility change >', visible);
   });
+  player1.addEventListener('PlayerFullscreenChange', function() {
+    console.log('player 1 fullscreen change', player1.fullscreen());
+  });
   console.log(player1);
 
 
@@ -94,7 +97,7 @@
     title: 'The solution to California\'s drought: if you eat beef, don\'t wash',
     poster: 'https://i.guim.co.uk/img/static/sys-images/Guardian/Pix/audio/video/2015/7/17/1437143214172/KP_356964_crop_1200x720.jpg?width=640&quality=85&auto=format&fit=max&s=723ea784ae21864c46aad3aae6aeda8b',
     src: 'https://cdn.theguardian.tv/mainwebsite/2015/07/20/150716YesMen_desk.mp4',
-    muted: false
+    muted: false,
     // src: 'https://dash.akamaized.net/envivio/EnvivioDash3/manifest.mpd'
     // src: 'https://cdn.theguardian.tv/HLS/2015/07/20/150716YesMen.m3u8',
     // src: 'https://cdn.theguardian.tv/webM/2015/07/20/150716YesMen_synd_768k_vp8.webm',

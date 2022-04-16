@@ -139,10 +139,29 @@ function NextButton() {
 }
 
 function VolumeButton() {
+  let isMuted = false;
   const volumeButton = document.createElement('div');
   volumeButton.classList.add('volume');
 
   this.render = () => volumeButton;
+  this.setState = (hasMuted) => {
+    isMuted = hasMuted;
+    if(isMuted) {
+      volumeButton.classList.add('muted');
+    } else {
+      volumeButton.classList.remove('muted');
+    }
+  }
+  this.onClick = function(callback) {
+    volumeButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if(callback
+        && typeof callback === 'function') {
+        callback(isMuted);
+      }
+    }, false);
+  }
   this.hide = () => {
     volumeButton.style.display = 'none';
   }
