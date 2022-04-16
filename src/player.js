@@ -402,7 +402,7 @@ Player.prototype.setSrc = function(source) {
 
     this._videoSlot.addEventListener('volumechange', (event) => {
       console.log('event > volume change', this.getVolume());
-      this._volumeButton.setState(!this.getVolume());
+      this._volumeButton && this._volumeButton.setState(!this.getVolume());
       this.onPlayerVolumeChange();
     }, false);
 
@@ -473,10 +473,10 @@ Player.prototype.setSrc = function(source) {
     // Volume button
     this._volumeButton && this._volumeButton.onClick(() => {
       console.log('volume button click', this.getVolume());
-      if(this.getVolume()) {
-        this.setVolume(0)
-      } else {
+      if(!this.getVolume()) {
         this.setVolume(1)
+      } else {
+        this.setVolume(0)
       }
     });
 
@@ -558,10 +558,14 @@ Player.prototype.setVolume = function(value) {
     this._videoSlot.muted = false;
     // Set attributes
     this._attributes.muted = false;
+  } else {
+    this._videoSlot.muted = true;
+    // Set attributes
+    this._attributes.muted = true;
   }
   const isVolumeChanged = value !== this._videoSlot.volume;
   if(isVolumeChanged) {
-    console.log('set volume > volume changed')
+    console.log('set volume > volume changed');
     this._videoSlot.volume = value;
     this._attributes.volume = value;
   }
