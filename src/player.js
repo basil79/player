@@ -53,10 +53,10 @@ const Player = function(el, options = {}, callback) {
     poster: null,
     src: null,
     autoplay: true,
-    preload: false,
     duration: 0,
     remainingTime: 0,
     currentTime: 0,
+    waitingTime: 0,
     muted: true,
     volume: 0,
     get hidden() {
@@ -80,15 +80,18 @@ const Player = function(el, options = {}, callback) {
   this._options = {
     width: 'auto',
     height: 'auto',
+    aspectRatio: '16:9', // 16:9, 9:16, 4:3, 1:1
     title: null,
     url: null,
     poster: null,
     src: null,
     autoplay: true,
+    preload: 'metadata', // none, auto, metadata
     loop: false,
     muted: true,
     volume: 1,
     controls: true,
+    inactivityTimeout: 2000,
     ads: {}
   };
 
@@ -110,7 +113,8 @@ const Player = function(el, options = {}, callback) {
     PlayerVolumeChange: 'PlayerVolumeChange',
     PlayerVideoPlaying: 'PlayerVideoPlaying',
     PlayerVideoPaused: 'PlayerVideoPaused',
-    PlayerVideoComplete: 'PlayerVideoComplete'
+    PlayerVideoComplete: 'PlayerVideoComplete',
+    PlayerError: 'PlayerError'
   }
 
   this._callback = callback;
@@ -124,10 +128,10 @@ const Player = function(el, options = {}, callback) {
   });
 
   // Hover
-  this._el.addEventListener('mouseover', (event) => {
+  this._el.addEventListener('mouseover', () => {
     this._el.classList.add('hovered');
   }, false);
-  this._el.addEventListener('mouseout', (event) => {
+  this._el.addEventListener('mouseout', () => {
     this._el.classList.remove('hovered');
   }, false);
 
@@ -168,7 +172,7 @@ Player.prototype.createVideoSlot = function() {
   this._videoSlot.setAttribute('webkit-playsinline', true);
   this._videoSlot.setAttribute('playsinline', true);
   // x-webkit-airplay="allow"
-  //this._videoSlot.setAttribute('preload', 'auto');
+  this._videoSlot.setAttribute('preload', this._options.preload); // none, auto, metadata
   this._videoSlot.setAttribute('tabindex', -1);
   this._videoSlot.style.backgroundColor = 'rgb(0, 0, 0)'; // TODO: remove
   this._videoSlot.classList.add('video');
@@ -342,6 +346,13 @@ Player.prototype.onPlayerVideoComplete = function() {
     }
   }
 }
+Player.prototype.onPlayerError = function(message) {
+  if(this.EVENTS.PlayerError in this._eventCallbacks) {
+    if(typeof this._eventCallbacks[this.EVENTS.PlayerError] === 'function') {
+      this._eventCallbacks[this.EVENTS.PlayerError](message);
+    }
+  }
+}
 Player.prototype.addEventListener = function(eventName, callback, context) {
   console.log('add event listener', eventName);
   const giveCallback = callback.bind(context);
@@ -384,7 +395,36 @@ Player.prototype.setSrc = function(source) {
     }
 
     // Attach events
-    this._videoSlot.addEventListener('play', (event) => {
+    this._videoSlot.addEventListener('loadstart', () => {
+      console.log('loadstart - waiting');
+    }, false);
+
+    this._videoSlot.addEventListener('waiting', (event) => {
+      console.log('waiting - add waiting', this.getCurrentTime());
+      this._el.classList.add('waiting');
+      this._attributes.waitingTime = this.getCurrentTime();
+      const timeUpdateListener = () => {
+        console.log('timeupdate - waiting', this._attributes.waitingTime, this.getCurrentTime());
+        if(this._attributes.waitingTime !== this.getCurrentTime()) {
+          console.log('timeupdate - remove waiting');
+          this._el.classList.remove('waiting');
+          this._videoSlot.removeEventListener('timeupdate', timeUpdateListener);
+        }
+      }
+      this._videoSlot.addEventListener('timeupdate', timeUpdateListener);
+    }, false);
+
+    this._videoSlot.addEventListener('canplay', () => {
+      console.log('canplay - remove waiting');
+      this._el.classList.remove('waiting');
+    }, false);
+
+    this._videoSlot.addEventListener('canplaythrough', () => {
+      console.log('canplaythrough - remove waiting');
+      this._el.classList.remove('waiting');
+    }, false);
+
+    this._videoSlot.addEventListener('play', () => {
       this._el.classList.remove('ended');
       this._el.classList.remove('paused');
       // Update play button
@@ -392,7 +432,7 @@ Player.prototype.setSrc = function(source) {
       this.onPlayerVideoPlaying();
     }, false);
 
-    this._videoSlot.addEventListener('pause', (event) => {
+    this._videoSlot.addEventListener('pause', () => {
       this._el.classList.remove('ended');
       this._el.classList.add('paused');
       // Update play button
@@ -400,7 +440,7 @@ Player.prototype.setSrc = function(source) {
       this.onPlayerVideoPaused();
     }, false);
 
-    this._videoSlot.addEventListener('volumechange', (event) => {
+    this._videoSlot.addEventListener('volumechange', () => {
       console.log('event > volume change', this.getVolume());
       this._volumeButton && this._volumeButton.setState(!this.getVolume());
       this.onPlayerVolumeChange();
@@ -435,6 +475,10 @@ Player.prototype.setSrc = function(source) {
 
     }, false);
 
+    this._videoSlot.addEventListener('loadeddata', () => {
+      // TODO:
+    }, false);
+
     this._videoSlot.addEventListener('loadedmetadata', (event) => {
       this._attributes.duration = event.target.duration;
       // Update timer
@@ -446,7 +490,15 @@ Player.prototype.setSrc = function(source) {
       console.log('ended', event.target);
       this._playButton && this._playButton.setState(false);
       this.onContentComplete();
-    });
+    }, false);
+
+    this._videoSlot.addEventListener('error', (event) => {
+      console.log('error - remove waiting');
+      console.log('error', event.target);
+      this._el.classList.remove('waiting');
+      this.pause();
+      this.onPlayerError('The media could not be loaded, either because the server or network failed or because the format is not supported.');
+    }, false);
 
     // Set source
     this._videoSlot.setAttribute('src', this._attributes.src);
@@ -456,17 +508,10 @@ Player.prototype.setSrc = function(source) {
 
     // Play button
     this._playButton && this._playButton.onClick(() => {
-      if(!this._videoSlot.paused) {
-        this._videoSlot.pause();
+      if(!this.paused()) {
+        this.pause();
       } else {
-        if(this._attributes.muted) {
-          this._videoSlot.muted = true;
-          this._videoSlot.volume = 0;
-          // Set attributes
-          this._attributes.muted = true;
-          this._attributes.volume = 0;
-        }
-        this._videoSlot.play();
+        this.play();
       }
     });
 
@@ -520,9 +565,8 @@ Player.prototype.play = function(source) {
 
   console.log('play > visible', this._attributes.visible, source);
 
-  if(this._attributes.src) {
-
-    console.log('play > source exists > try to play', this._attributes.mimeType, this._attributes.src, this._videoSlot.paused)
+  if(this._videoSlot && this._attributes.src) {
+    console.log('play > source exists > try to play', this._attributes.mimeType, this._attributes.src, this._videoSlot.paused);
     if(this._videoSlot.paused) {
       if(this._attributes.muted) {
         this._videoSlot.muted = true;
@@ -552,31 +596,34 @@ Player.prototype.getVolume = function() {
   return this._videoSlot.muted ? 0 : this._videoSlot.volume;
 }
 Player.prototype.setVolume = function(value) {
-  // TODO: muted
-  console.log('set volume >', value, this._videoSlot.volume);
-  if(value) {
-    this._videoSlot.muted = false;
-    // Set attributes
-    this._attributes.muted = false;
-  } else {
-    this._videoSlot.muted = true;
-    // Set attributes
-    this._attributes.muted = true;
-  }
-  const isVolumeChanged = value !== this._videoSlot.volume;
-  if(isVolumeChanged) {
-    console.log('set volume > volume changed');
-    this._videoSlot.volume = value;
-    this._attributes.volume = value;
+  if(this._videoSlot) {
+    console.log('set volume >', value, this._videoSlot.volume);
+    if (value) {
+      this._videoSlot.muted = false;
+      // Set attributes
+      this._attributes.muted = false;
+    } else {
+      this._videoSlot.muted = true;
+      // Set attributes
+      this._attributes.muted = true;
+    }
+    const isVolumeChanged = value !== this._videoSlot.volume;
+    if (isVolumeChanged) {
+      console.log('set volume > volume changed');
+      this._videoSlot.volume = value;
+      this._attributes.volume = value;
+    }
   }
 }
 Player.prototype.readyState = function() {
   return null;
 }
 Player.prototype.getDuration = function() {
+  // TODO:
   return this._attributes.duration;
 }
 Player.prototype.getCurrentTime = function() {
+  // TODO:
   return this._attributes.currentTime;
 }
 Player.prototype.setCurrentTime = function(seconds) {
@@ -584,12 +631,13 @@ Player.prototype.setCurrentTime = function(seconds) {
     if (seconds < 0) {
       seconds = 0;
     }
-    if (this._attributes.src) {
+    if (this._videoSlot && this._attributes.src) {
       this._videoSlot.currentTime = seconds;
     }
   }
 }
 Player.prototype.getRemainingTime = function() {
+  // TODO:
   return this._attributes.remainingTime;
 }
 Player.prototype.visible = function() {
@@ -602,19 +650,21 @@ Player.prototype.fullscreen = function() {
   return this._attributes.fullscreen;
 }
 Player.prototype.requestFullscreen = function() {
-  if(this._attributes.src && !isFullscreen(document)) {
+  if(this._videoSlot && this._attributes.src && !isFullscreen(document)) {
     requestFullscreen(this._el);
   }
 }
 Player.prototype.exitFullscreen = function() {
-  if(this._attributes.src && isFullscreen(document)) {
+  if(this._videoSlot && this._attributes.src && isFullscreen(document)) {
     existFullscreen(document);
   }
 }
 Player.prototype.getWidth = function() {
+  // TODO:
   return this._videoSlot.clientWidth;
 }
 Player.prototype.getHeight = function() {
+  // TODO:
   return this._videoSlot.clientHeight;
 }
 Player.prototype.destroy = function() {
