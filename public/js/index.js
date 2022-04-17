@@ -91,7 +91,8 @@
 
   // player 3
   const player3 = new adserve.tv.Player(document.getElementById('player3'), {
-    controls: true,
+    title: 'Title',
+    controls: false,
     loop: true
   });
   player3.addEventListener('PlayerReady', function() {
