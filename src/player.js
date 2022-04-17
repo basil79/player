@@ -192,6 +192,13 @@ Player.prototype.createSlot = function() {
   // Add classname with session id
   this._el.classList.add('adserve-tv-player-' + this._attributes.sessionId);
   this._el.appendChild(this._slot);
+  // Width and Height
+  if(this._options.width !== 'auto'
+    || this._options.height !== 'auto') {
+    this._el.style.width = (typeof this._options.width === 'number') ? this._options.width + 'px' : this._options.width;
+    this._el.style.height = (typeof this._options.height === 'number') ? this._options.height + 'px' : this._options.height;
+  }
+
   this.createVideoSlot();
 }
 Player.prototype.createVideoSlot = function() {
