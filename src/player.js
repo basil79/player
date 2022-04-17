@@ -13,7 +13,7 @@ import {
   FullscreenButton, Gradient, Header,
   NextButton,
   PlayButton,
-  PrevButton,
+  PrevButton, Spinner,
   Timeline,
   Timer,
   VolumeButton
@@ -34,10 +34,15 @@ const Player = function(el, options = {}, callback) {
   this._slot = null;
   this._videoSlot = null;
 
-  // Header
-  this._header = null;
+
   // Gradient
   this._gradient = null;
+  // Header
+  this._header = null;
+  // Spinner
+  this._spinner = null;
+  // Big Play
+  this._bigPlayButton = null;
 
   // Controls
   this._timeline = null;
@@ -46,7 +51,7 @@ const Player = function(el, options = {}, callback) {
   this._nextButton = null;
   this._timer = null;
   this._fullscreenButton = null;
-  this._bigPlayButton = null;
+
 
   this._attributes = {
     isReady: false, // TODO: change to true when ready
@@ -185,10 +190,8 @@ Player.prototype.createVideoSlot = function() {
 
   console.log(this._attributes.visible);
 
-  // Create controls
-  if(this._options.controls) {
-    this.createControls(); // TODO:
-  }
+  // Create overlay
+  this.createOverlay();
 
 
   // Set source
@@ -209,70 +212,76 @@ Player.prototype.createVideoSlot = function() {
   }, 75);
 
 }
-Player.prototype.createControls = function() {
+Player.prototype.createOverlay = function() {
   console.log('create controls');
 
   // Overlay
   const overlay = document.createElement('div');
   overlay.classList.add('overlay');
 
-  // Header
-  this._header = new Header();
-  overlay.appendChild(this._header.render());
-
   // Gradient
   this._gradient = new Gradient();
   overlay.appendChild(this._gradient.render());
 
-  // Timeline
-  this._timeline = new Timeline();
-  overlay.appendChild(this._timeline.render());
+  // Header
+  this._header = new Header();
+  overlay.appendChild(this._header.render());
 
-  // Controls
-  const controls = document.createElement('div');
-  controls.classList.add('controls');
-
-  // Prev Button
-  this._prevButton = new PrevButton();
-  controls.appendChild(this._prevButton.render());
-  // TODO:
-  this._prevButton.hide();
-
-  // Play Button
-  this._playButton = new PlayButton();
-  controls.appendChild(this._playButton.render());
-
-  // Next Button
-  this._nextButton = new NextButton();
-  controls.appendChild(this._nextButton.render());
-  // TODO:
-  this._nextButton.hide();
-
-  // Volume Button
-  this._volumeButton = new VolumeButton();
-  if(this._attributes.muted) {
-    this._volumeButton.setState(true);
-  } else {
-    console.log('is muted', this._attributes.muted, 'volume', this._attributes.volume)
-  }
-
-  controls.appendChild(this._volumeButton.render());
-
-  // Timer
-  this._timer = new Timer();
-  controls.appendChild(this._timer.render());
-
-  // Fullscreen Button
-  this._fullscreenButton = new FullscreenButton();
-  controls.appendChild(this._fullscreenButton.render());
-
-  // Append controls to overlay
-  overlay.appendChild(controls);
+  // Spinner
+  this._spinner = new Spinner();
+  overlay.appendChild(this._spinner.render());
 
   // Big Play
   this._bigPlayButton = new BigPlayButton();
   overlay.appendChild(this._bigPlayButton.render());
 
+  if(this._options.controls) {
+    // Timeline
+    this._timeline = new Timeline();
+    overlay.appendChild(this._timeline.render());
+
+    // Controls
+    const controls = document.createElement('div');
+    controls.classList.add('controls');
+
+    // Prev Button
+    this._prevButton = new PrevButton();
+    controls.appendChild(this._prevButton.render());
+    // TODO:
+    this._prevButton.hide();
+
+    // Play Button
+    this._playButton = new PlayButton();
+    controls.appendChild(this._playButton.render());
+
+    // Next Button
+    this._nextButton = new NextButton();
+    controls.appendChild(this._nextButton.render());
+    // TODO:
+    this._nextButton.hide();
+
+    // Volume Button
+    this._volumeButton = new VolumeButton();
+    if (this._attributes.muted) {
+      this._volumeButton.setState(true);
+    } else {
+      console.log('is muted', this._attributes.muted, 'volume', this._attributes.volume)
+    }
+
+    controls.appendChild(this._volumeButton.render());
+
+    // Timer
+    this._timer = new Timer();
+    controls.appendChild(this._timer.render());
+
+    // Fullscreen Button
+    this._fullscreenButton = new FullscreenButton();
+    controls.appendChild(this._fullscreenButton.render());
+
+    // Append controls to overlay
+    overlay.appendChild(controls);
+
+  }
 
   this._el.appendChild(overlay);
 }

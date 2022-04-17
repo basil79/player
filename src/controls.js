@@ -1,5 +1,12 @@
 import {toHHMMSS} from './utils';
 
+function Spinner() {
+  const spinner = document.createElement('div');
+  spinner.classList.add('spinner');
+
+  this.render = () => spinner;
+}
+
 function Header() {
   const header = document.createElement('div');
   header.classList.add('header');
@@ -240,6 +247,7 @@ function FullscreenButton() {
 }
 
 export {
+  Spinner,
   Header,
   Gradient,
   Timeline,
