@@ -74,7 +74,9 @@
 
 
   // player 2
-  const player2 = new adserve.tv.Player(document.getElementById('player2'), {}, function() {
+  const player2 = new adserve.tv.Player(document.getElementById('player2'), {
+    title: 'Elephants Dream'
+  }, function() {
     console.log('player2 is ready', this);
     // Play
     // MPEG-DASH
