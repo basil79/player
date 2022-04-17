@@ -1,7 +1,9 @@
 import { AdsManager } from 'ads-manager';
 import {
-  existFullscreen,
+  aspectRatios,
+  existFullscreen, generateSessionId,
   getMimeType,
+  injectStyle,
   isFullscreen,
   observeVisibility,
   requestFullscreen,
@@ -10,10 +12,13 @@ import {
 } from './utils';
 import {
   BigPlayButton,
-  FullscreenButton, Gradient, Header,
+  FullscreenButton,
+  Gradient,
+  Header,
   NextButton,
   PlayButton,
-  PrevButton, Spinner,
+  PrevButton,
+  Spinner,
   Timeline,
   Timer,
   VolumeButton
@@ -52,12 +57,13 @@ const Player = function(el, options = {}, callback) {
   this._timer = null;
   this._fullscreenButton = null;
 
-
+  // Attributes
   this._attributes = {
+    sessionId: generateSessionId(), // TODO
     isReady: false, // TODO: change to true when ready
+    aspectRatioPercentage: null,
     poster: null,
     src: null,
-    autoplay: true,
     duration: 0,
     remainingTime: 0,
     currentTime: 0,
@@ -81,18 +87,21 @@ const Player = function(el, options = {}, callback) {
     prevVisible: true,
     version: '!!#Version#!!'
   };
+
   // Options
   this._options = {
     width: 'auto',
     height: 'auto',
-    aspectRatio: '16:9', // 16:9, 9:16, 4:3, 1:1
+    aspectRatio: '16:9', // '16:9', '9:16', '4:3', '1:1'
     title: null,
     url: null,
     poster: null,
     src: null,
-    autoplay: true,
-    preload: 'metadata', // none, auto, metadata
+    sources: null,
+    autoplay: false, // false, true, 'muted', 'play', 'any'
+    preload: 'metadata', // 'none', 'auto', 'metadata'
     loop: false,
+    playbackRates: null,
     muted: true,
     volume: 1,
     controls: true,
@@ -109,6 +118,17 @@ const Player = function(el, options = {}, callback) {
   this._attributes.volume = this._attributes.muted ? 0 : this._options.volume;
   if(!this._attributes.muted && this._attributes.volume == 0) {
     this._attributes.muted = true;
+  }
+
+  // Aspect ratio
+  this._attributes.aspectRatioPercentage = aspectRatios[this._options.aspectRatio];
+  console.log('aspect ratio percentage', this._attributes.aspectRatioPercentage);
+  if(this._attributes.aspectRatioPercentage) {
+    injectStyle(`adserve-tv-player-${this._attributes.sessionId}`,
+      `.adserve-tv-player-${this._attributes.sessionId} .video-container {
+        padding-bottom: ${this._attributes.aspectRatioPercentage}
+      }`
+    )
   }
 
   this.EVENTS = {
@@ -169,6 +189,8 @@ Player.prototype.createSlot = function() {
   this._slot = document.createElement('div');
   this._slot.classList.add('video-container');
   this._el.classList.add('adserve-tv-player');
+  // Add classname with session id
+  this._el.classList.add('adserve-tv-player-' + this._attributes.sessionId);
   this._el.appendChild(this._slot);
   this.createVideoSlot();
 }
@@ -405,7 +427,7 @@ Player.prototype.setSrc = function(source) {
 
     // Attach events
     this._videoSlot.addEventListener('loadstart', () => {
-      console.log('loadstart - waiting');
+      console.log('loadstart', this._options.autoplay);
     }, false);
 
     this._videoSlot.addEventListener('waiting', (event) => {
@@ -678,6 +700,9 @@ Player.prototype.getHeight = function() {
 }
 Player.prototype.destroy = function() {
   // TODO: destroy
+}
+Player.prototype.getSessionId = function() {
+  return this._attributes.sessionId;
 }
 Player.prototype.getVersion = function() {
   return this._attributes.version;

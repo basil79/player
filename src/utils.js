@@ -27,6 +27,7 @@ const mimeTypes = {
   mov: 'video/mp4',
   m4v: 'video/mp4',
   mkv: 'video/x-matroska',
+  treegpv: 'video/3gpp',
   m4a: 'audio/mp4',
   mp3: 'audio/mpeg',
   aac: 'audio/aac',
@@ -112,6 +113,48 @@ function existFullscreen(el) {
   return false;
 }
 
+const aspectRatios = {
+  '1:1': '100%',
+  '16:9': '56.25%', // 9 / 16 * 100 = 56.25
+  '4:3': '75%',
+  '3:2': '66.66%',
+  '8:5': '62.5%',
+  '9:16': '177.77%' // 16 / 9 * 100 = 177.77777777777777
+}
+
+function injectStyle(id, cssContent) {
+  if(!cssContent || typeof cssContent !== 'string' || cssContent.length < 1) {
+    return;
+  }
+  let style = null;
+  if(id) {
+    // Update
+    style = document.getElementById(id);
+    if(!style) {
+      style = document.createElement('style');
+      style.id = id;
+      style.textContent = cssContent;
+      document.head.appendChild(style);
+    } else {
+      style.textContent = cssContent
+    }
+  } else {
+    // Set
+    style = document.createElement('style');
+    style.textContent = cssContent;
+    document.head.appendChild(style);
+  }
+}
+
+function generateSessionId() {
+  let sessionId = '';
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  for (let i = 0; i < 32; i++)
+    sessionId += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return sessionId;
+}
+
 export {
   observeVisibility,
   visible,
@@ -123,5 +166,8 @@ export {
   getBuffer,
   isFullscreen,
   requestFullscreen,
-  existFullscreen
+  existFullscreen,
+  aspectRatios,
+  injectStyle,
+  generateSessionId
 }

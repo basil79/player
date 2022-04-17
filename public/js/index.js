@@ -93,6 +93,7 @@
 
   // player 3
   const player3 = new adserve.tv.Player(document.getElementById('player3'), {
+    aspectRatio: '1:1',
     title: 'Title',
     controls: false,
     loop: true
