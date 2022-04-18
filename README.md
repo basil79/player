@@ -2,6 +2,19 @@
 
 > HTML5 Video Player
 
+Features:
+
+- Responsive
+- Support for multiple players on the same webpage
+- Autoplay
+- Detect Visibility
+- True Fullscreen
+- Media Types
+  - `video/mp4` MP4
+  - `video/webm` WebM
+  - `video/ogg` OGG
+  - `video/3gpp` 3GPV (Safari)
+
 This README is for developers who want to use and/or contribute to player.
 
 **Table of Contents**
@@ -11,6 +24,10 @@ This README is for developers who want to use and/or contribute to player.
 - [Build](#Build)
 - [Run](#Run)
 - [Contribute](#Contribute)
+
+
+## Usage
+
 
 
 ## Documentation
@@ -37,12 +54,6 @@ const player = new adserve.tv.Player(document.getElementById('player'));
 ```
 
 ## Install
-
-### Get Started
-
-player is available as an NPM package and can be easily installed with:
-
-    $ npm i player
 
 ### Using Git
 
