@@ -39,6 +39,8 @@ const Player = function(el, options = {}, callback) {
   this._slot = null;
   this._videoSlot = null;
 
+  // Play promise
+  this._playPromise = null;
 
   // Gradient
   this._gradient = null;
@@ -108,6 +110,7 @@ const Player = function(el, options = {}, callback) {
     volume: 1,
     controls: true,
     inactivityTimeout: 2000,
+    textTracks: {}, // closed captions, subtitles
     ads: {}
   };
 
@@ -120,6 +123,11 @@ const Player = function(el, options = {}, callback) {
   this._attributes.volume = this._attributes.muted ? 0 : this._options.volume;
   if(!this._attributes.muted && this._attributes.volume == 0) {
     this._attributes.muted = true;
+  }
+  // Autoplay 'muted'
+  if(this._options.autoplay === 'muted') {
+    this._attributes.muted = true;
+    this._attributes.volume = 0;
   }
 
   // Aspect ratio
@@ -572,10 +580,20 @@ Player.prototype.setSrc = function(source) {
 
     // Attach events
     this._videoSlot.addEventListener('loadstart', () => {
-      console.log('loadstart', this._options.autoplay);
+      console.log('loadstart', this._options.autoplay, this._videoSlot);
+      // Autoplay 'muted'
+      if(this._options.autoplay === 'muted') {
+        this.play();
+      }
+      // Autoplay 'play' or 'any'
+      if(this._options.autoplay === 'play'
+        || this._options.autoplay === 'any') {
+        this.play();
+      }
+
     }, false);
 
-    this._videoSlot.addEventListener('waiting', (event) => {
+    this._videoSlot.addEventListener('waiting', () => {
       console.log('waiting - add waiting', this.getCurrentTime());
       this._el.classList.add('waiting');
       this._attributes.waitingTime = this.getCurrentTime();
@@ -678,6 +696,13 @@ Player.prototype.setSrc = function(source) {
 
     // Set source
     this._videoSlot.setAttribute('src', this._attributes.src);
+
+    // Autoplay
+    if(this._options.autoplay === true) {
+      this._videoSlot.setAttribute('autoplay', true);
+    }
+
+    // Set title
     if(this._options.title) {
       this._header && this._header.setTitle(this._options.title, this._options.url);
     }
@@ -751,7 +776,20 @@ Player.prototype.play = function(source) {
         this._attributes.muted = true;
         this._attributes.volume = 0;
       }
-      this._videoSlot.play();
+      // Play
+      this._playPromise = this._videoSlot.play();
+      if(this._playPromise instanceof Promise) {
+        this._playPromise.then(() => {
+
+        }).catch((error) => {
+          console.log('play promise', this._options.autoplay, error);
+          if(this._options.autoplay === 'any') {
+            this._attributes.muted = true;
+            this._attributes.volume = 0;
+            this.play();
+          }
+        });
+      }
     }
 
   } else {
