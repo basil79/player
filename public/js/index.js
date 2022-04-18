@@ -53,7 +53,7 @@
     console.log('player1 is ready', this);
     // Play
     // HLS
-    this.play();
+    //this.play();
   });
   player1.addEventListener('PlayerVisibilityChange', function(visible) {
     console.log('player1 visibility change >', visible);
@@ -70,7 +70,6 @@
   player1.addEventListener('PlayerError', function(message) {
     console.log('player 1 error', message);
   });
-  console.log(player1);
 
 
   // player 2
@@ -89,8 +88,6 @@
   player2.addEventListener('PlayerError', function(message) {
     console.log('player 2 error', message);
   });
-
-  console.log(player2);
 
 
   // player 3
@@ -112,9 +109,10 @@
   player3.addEventListener('PlayerError', function(message) {
     console.log('player 3 error', message);
   });
-  console.log(player3);
   console.log('Player version is', player3.getVersion());
 
+
+  // player 4
   const player4 = new adserve.tv.Player(document.getElementById('player4'), {
     title: 'The solution to California\'s drought: if you eat beef, don\'t wash',
     poster: 'https://i.guim.co.uk/img/static/sys-images/Guardian/Pix/audio/video/2015/7/17/1437143214172/KP_356964_crop_1200x720.jpg?width=640&quality=85&auto=format&fit=max&s=723ea784ae21864c46aad3aae6aeda8b',
@@ -134,11 +132,7 @@
     console.log('player 4 error', message);
   });
 
-  console.log(player4);
-
-
-
-
+  // player 5
   const player5 = new adserve.tv.Player(document.getElementById('player5'), {
     // source base64
     title: 'Cyberpunk 2077: Our Thoughts After Seeing 50 Minutes of New Gameplay - E3 2019',
@@ -152,9 +146,23 @@
     console.log('player 5 error', message);
   });
 
-
-  // https://res.cloudinary.com/demo/video/upload/vc_vp9/outdoors.webm?_s=vp-1.8.0
-  // https://res.cloudinary.com/demo/raw/upload/outdoors.vtt
+  // player 6
+  const player6 = new adserve.tv.Player(document.getElementById('player6'), {
+    title: 'My Title',
+    src: 'https://res.cloudinary.com/demo/video/upload/vc_vp9/outdoors.webm?_s=vp-1.8.0',
+    autoplay: 'any', // false, true, 'muted', 'play', 'any'
+    muted: false,
+    volume: 1,
+    textTracks: {
+      subtitles: [{
+        label: 'English',
+        language: 'en',
+        url: 'https://res.cloudinary.com/demo/raw/upload/outdoors.vtt'
+      }]
+    }
+  }, function() {
+    console.log('player6 - ready');
+  });
 
 
 })()
