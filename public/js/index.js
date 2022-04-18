@@ -76,8 +76,8 @@
   // player 2
   const player2 = new adserve.tv.Player(document.getElementById('player2'), {
     title: 'Elephants Dream',
-    width: 320,
-    height: 180
+    /*width: 320,
+    height: 180*/
   }, function() {
     console.log('player2 is ready', this);
     // Play
@@ -151,6 +151,10 @@
   player5.addEventListener('PlayerError', function(message) {
     console.log('player 5 error', message);
   });
+
+
+  // https://res.cloudinary.com/demo/video/upload/vc_vp9/outdoors.webm?_s=vp-1.8.0
+  // https://res.cloudinary.com/demo/raw/upload/outdoors.vtt
 
 
 })()

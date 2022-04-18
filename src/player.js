@@ -61,6 +61,8 @@ const Player = function(el, options = {}, callback) {
   this._attributes = {
     sessionId: generateSessionId(), // TODO
     isReady: false, // TODO: change to true when ready
+    userActive: false,
+    userActivity: false,
     aspectRatioPercentage: null,
     poster: null,
     src: null,
@@ -139,6 +141,8 @@ const Player = function(el, options = {}, callback) {
     PlayerVideoPlaying: 'PlayerVideoPlaying',
     PlayerVideoPaused: 'PlayerVideoPaused',
     PlayerVideoComplete: 'PlayerVideoComplete',
+    PlayerUserActive: 'PlayerUserActive',
+    PlayerUserInactive: 'PlayerUserInactive',
     PlayerError: 'PlayerError'
   }
 
@@ -151,14 +155,6 @@ const Player = function(el, options = {}, callback) {
     this._attributes.intersectionRatio = intersectionRatio;
     this.onVisibilityChange();
   });
-
-  // Hover
-  this._el.addEventListener('mouseover', () => {
-    this._el.classList.add('hovered');
-  }, false);
-  this._el.addEventListener('mouseout', () => {
-    this._el.classList.remove('hovered');
-  }, false);
 
   // Fullscreen change
   document.addEventListener('fullscreenchange', () => {
@@ -228,6 +224,10 @@ Player.prototype.createVideoSlot = function() {
   // Poster
   this.setPoster(this._options.poster);
 
+  // User Active
+  this.userActive(true);
+  this.listenForUserActivity();
+
   // TODO:
   setTimeout(() => {
     this._attributes.isReady = true;
@@ -239,6 +239,124 @@ Player.prototype.createVideoSlot = function() {
     }
     this.onPlayerReady();
   }, 75);
+
+}
+Player.prototype.userActive = function(isActive) {
+  if(isActive === undefined) {
+    return this._attributes.userActive;
+  }
+
+  isActive = !!isActive;
+
+  if(isActive === this._attributes.userActive) {
+    return;
+  }
+
+  this._attributes.userActive = isActive;
+
+  if(this._attributes.userActive) {
+    this._attributes.userActivity = true;
+    this._el.classList.remove('user-inactive');
+    this._el.classList.add('user-active');
+    // Trigger onUserActive
+    this.onUserActive();
+    return;
+  }
+
+  // Chrome/Safari/IE have bugs where when you change the cursor it can
+  // trigger a mousemove event. This causes an issue when you're hiding
+  // the cursor when the user is inactive, and a mousemove signals user
+  // activity. Making it impossible to go into inactive mode. Specifically
+  // this happens in fullscreen when we really need to hide the cursor.
+  this._el.addEventListener('mousemove', (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+  }, { once: true });
+
+  this._attributes.userActivity = false;
+  this._el.classList.remove('user-active');
+  this._el.classList.add('user-inactive');
+
+  // Trigger onUserInactive
+  this.onUserInactive();
+}
+Player.prototype.reportUserActivity = function() {
+  this._attributes.userActivity = true;
+}
+Player.prototype.listenForUserActivity = function() {
+  let mouseInProgress;
+  let lastMoveX;
+  let lastMoveY;
+
+  const handleActivity = this.reportUserActivity.bind(this);
+
+  const handleMouseMove = (event) => {
+    if(event.screenX !== lastMoveX || event.screenY !== lastMoveY) {
+      lastMoveX = event.screenX;
+      lastMoveY = event.screenY;
+      handleActivity();
+    }
+  };
+
+  const handleMouseDown = () => {
+    handleActivity();
+    // For as long as they are touching the device or have their mouse down,
+    // we consider them active even if they're not moving their finger or mouse.
+    // So we want to continue to update that they are active
+    window.clearInterval(mouseInProgress);
+    // Setting userActivity=true now and setting the interval to the same time
+    // as the activityCheck interval (250) should ensure we never miss the
+    // next activityCheck
+    mouseInProgress = window.setInterval(handleActivity, 250);
+  };
+
+  const handleMouseUpAndMouseLeave = () => {
+    handleActivity();
+    // Stop the interval that maintains activity if the mouse/touch is down
+    window.clearInterval(mouseInProgress);
+  };
+
+  // Any mouse movement will be considered user activity
+  this._el.addEventListener('mousedown', handleMouseDown);
+  this._el.addEventListener('mousemove', handleMouseMove);
+  this._el.addEventListener('mouseup', handleMouseUpAndMouseLeave);
+  this._el.addEventListener('mouseleave', handleMouseUpAndMouseLeave);
+
+  // Run an interval every 250 milliseconds instead of stuffing everything into
+  // the mousemove/touchmove function itself, to prevent performance degradation.
+  let inactivityTimeout;
+
+  window.setInterval(() => {
+    // Check to see if mouse/touch activity has happened
+    if(!this._attributes.userActivity) {
+      return;
+    }
+
+    // Reset the activity tracker
+    this._attributes.userActivity = false;
+    // If the user state was inactive, set the state to active
+    this.userActive(true);
+    // Clear any existing inactivity timeout to start the timer over
+    window.clearTimeout(inactivityTimeout);
+
+    const timeout = this._options.inactivityTimeout;
+
+    if(timeout <= 0) {
+      return;
+    }
+
+    // In <timeout> milliseconds, if no more activity has occurred the
+    // user will be considered inactive
+    inactivityTimeout = window.setTimeout(() => {
+      // Protect against the case where the inactivityTimeout can trigger just
+      // before the next user activity is picked up by the activity check loop
+      // causing a flicker
+      if(!this._attributes.userActivity) {
+        this.userActive(false);
+      }
+    }, timeout);
+
+  }, 250);
 
 }
 Player.prototype.createOverlay = function() {
@@ -313,6 +431,26 @@ Player.prototype.createOverlay = function() {
   }
 
   this._el.appendChild(overlay);
+}
+Player.prototype.onUserActive = function() {
+  this.onPlayerUserActive();
+}
+Player.prototype.onPlayerUserActive = function() {
+  if(this.EVENTS.PlayerUserActive in this._eventCallbacks) {
+    if(typeof this._eventCallbacks[this.EVENTS.PlayerUserActive] === 'function') {
+      this._eventCallbacks[this.EVENTS.PlayerUserActive]();
+    }
+  }
+}
+Player.prototype.onUserInactive = function() {
+  this.onPlayerUserInactive();
+}
+Player.prototype.onPlayerUserInactive = function() {
+  if(this.EVENTS.PlayerUserInactive in this._eventCallbacks) {
+    if(typeof this._eventCallbacks[this.EVENTS.PlayerUserInactive] === 'function') {
+      this._eventCallbacks[this.EVENTS.PlayerUserInactive]();
+    }
+  }
 }
 Player.prototype.onFullscreenChange = function() {
   this._attributes.fullscreen = isFullscreen(document);
