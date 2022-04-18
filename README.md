@@ -8,6 +8,7 @@ Features:
 - Support for multiple players on the same webpage
 - Autoplay
 - Detect Visibility
+- User Activity
 - True Fullscreen
 - Media Types
   - `video/mp4` MP4
