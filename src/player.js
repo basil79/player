@@ -657,7 +657,10 @@ Player.prototype.setSrc = function(source) {
       this._attributes.remainingTime = event.target.duration - event.target.currentTime;
 
       // Update timeline
-      this._timeline && this._timeline.updateProgress(event.target.currentTime > 0 && event.target.duration > 0 ? event.target.currentTime / event.target.duration : 0);
+      if(this._timeline) {
+        this._timeline.updateProgress(event.target.currentTime > 0 && event.target.duration > 0 ? event.target.currentTime / event.target.duration : 0);
+        this._timeline.updateTimeTooltip(event.target.currentTime);
+      }
       // Update timer
       this._timer && this._timer.updateTimeElapsed(event.target.currentTime);
 
