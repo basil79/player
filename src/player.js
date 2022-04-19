@@ -672,9 +672,10 @@ Player.prototype.setSrc = function(source) {
 
     this._videoSlot.addEventListener('loadedmetadata', (event) => {
       this._attributes.duration = event.target.duration;
+      // Update timeline
+      this._timeline && this._timeline.setDuration(event.target.duration);
       // Update timer
       this._timer && this._timer.setDuration(event.target.duration);
-
     }, false);
 
     this._videoSlot.addEventListener('ended', (event) => {
@@ -711,6 +712,11 @@ Player.prototype.setSrc = function(source) {
       } else {
         this.play();
       }
+    });
+
+    this._timeline && this._timeline.onMouseDown((newTime) => {
+      console.log('mousedown - newTime', newTime);
+      this.setCurrentTime(newTime);
     });
 
     // Volume button
