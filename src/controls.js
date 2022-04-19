@@ -68,11 +68,19 @@ function Timeline() {
   // Timeline progress
   const timelineProgress = document.createElement('div');
   timelineProgress.classList.add('timeline-progress');
+  const timeTooltip = document.createElement('div');
+  timeTooltip.innerHTML = toHHMMSS(0);
+  timeTooltip.classList.add('time-tooltip');
+  timelineProgress.appendChild(timeTooltip);
+
   timeline.appendChild(timelineProgress);
 
   this.render = () => timeline;
   this.updateProgress = (value) => {
     value < 0 ? value = 0 : value > 1 && (value = 1), timelineProgress.style.width = 100 * value + '%'
+  }
+  this.updateTimeTooltip = (value) => {
+    timeTooltip.innerHTML = toHHMMSS(value);
   }
   this.updateBuffer = (value) => {
     value < 0 ? value = 0 : value > 1 && (value = 1), timelineBuffer.style.width = 100 * value + '%'
@@ -88,7 +96,6 @@ function Timeline() {
 function PrevButton() {
   const prevButton = document.createElement('button');
   prevButton.classList.add('prev');
-  prevButton.innerHTML = 'Prev';
 
   this.render = () => prevButton;
   this.hide = () => {
