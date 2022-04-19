@@ -1,4 +1,4 @@
-import {toHHMMSS} from './utils';
+import {findPosition, toHHMMSS} from './utils';
 
 function Spinner() {
   const spinner = document.createElement('div');
@@ -76,6 +76,11 @@ function Timeline() {
   timeline.appendChild(timelineProgress);
 
   this.render = () => timeline;
+
+  let totalDuration = 0;
+  this.setDuration = (duration= 0) => {
+    totalDuration = duration;
+  }
   this.updateProgress = (value) => {
     value < 0 ? value = 0 : value > 1 && (value = 1), timelineProgress.style.width = 100 * value + '%'
   }
@@ -85,6 +90,23 @@ function Timeline() {
   this.updateBuffer = (value) => {
     value < 0 ? value = 0 : value > 1 && (value = 1), timelineBuffer.style.width = 100 * value + '%'
   }
+  this.onMouseDown = function(callback) {
+    timeline.addEventListener('mousedown', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const left = event.offsetX;
+      const totalWidth = timeline.clientWidth;
+      const percentage = (left / totalWidth);
+      const newTime = totalDuration * percentage;
+
+      if(callback
+        && typeof callback === 'function') {
+        callback(newTime > 0 ? (newTime > totalDuration ? totalDuration : newTime) : 0);
+      }
+    }, false);
+  }
+
   this.hide = () => {
     timeline.style.display = 'none';
   }

@@ -155,6 +155,35 @@ function generateSessionId() {
   return sessionId;
 }
 
+function findPosition(el) {
+  if (!el || (el && !el.offsetParent)) {
+    return {
+      left: 0,
+      top: 0,
+      width: 0,
+      height: 0
+    };
+  }
+  const width = el.offsetWidth;
+  const height = el.offsetHeight;
+  let left = 0;
+  let top = 0;
+
+  while (el.offsetParent /*&& el !== document[fs.fullscreenElement]*/) {
+    left += el.offsetLeft;
+    top += el.offsetTop;
+
+    el = el.offsetParent;
+  }
+
+  return {
+    left,
+    top,
+    width,
+    height
+  };
+}
+
 export {
   observeVisibility,
   visible,
@@ -169,5 +198,6 @@ export {
   existFullscreen,
   aspectRatios,
   injectStyle,
-  generateSessionId
+  generateSessionId,
+  findPosition
 }

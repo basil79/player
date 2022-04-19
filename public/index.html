@@ -193,7 +193,7 @@
             z-index: 1;
             top: 0px;
             user-select: none;
-            pointer-events: none;
+            /*pointer-events: none;*/
         }
         .adserve-tv-player .header {
             transition: opacity 250ms ease 0s, visibility 250ms ease 0s;
@@ -293,7 +293,7 @@
             left: 20px;
             right: 20px;
             bottom: 56px;
-
+            cursor: pointer;
             background: rgb(100, 100, 100);
             background: rgba(255, 255, 255, 0.5);
             -webkit-box-shadow: 0 0 3px 0 rgb(0 0 0 / 10%);
@@ -303,6 +303,10 @@
             transition: opacity 250ms ease 0s, visibility 250ms ease 0s;
             opacity: 0.01;
             visibility: hidden;
+        }
+        .adserve-tv-player .timeline:hover {
+            height: 8px;
+            bottom: 54px;
         }
         /*.adserve-tv-player.hovered .timeline,*/
         .adserve-tv-player.user-active .timeline,
@@ -315,18 +319,18 @@
             width: 100%;
             position: absolute;
             left: 0;
-            height: 4px
+            height: 100%
         }
         .adserve-tv-player .timeline-buffer {
             position: absolute;
             left: 0;
-            height: 4px;
+            height: 100%;
             background: #fff;
         }
         .adserve-tv-player .timeline-progress {
             position: absolute;
             left: 0;
-            height: 4px;
+            height: 100%;
             background: red;
         }
         .adserve-tv-player .timeline-progress:before {
@@ -345,6 +349,10 @@
             top: 50%;
             right: -5px;
             margin-top: -5px;
+        }
+        .adserve-tv-player .timeline:hover .timeline-progress:before {
+            -webkit-transform: scale(1.5);
+            transform: scale(1.5);
         }
         .adserve-tv-player .time-tooltip {
             -webkit-transition-timing-function: cubic-bezier(0,0,0.2,1);
