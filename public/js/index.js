@@ -149,7 +149,8 @@
   // player 6
   const player6 = new adserve.tv.Player(document.getElementById('player6'), {
     title: 'My Title',
-    src: 'https://res.cloudinary.com/demo/video/upload/vc_vp9/outdoors.webm?_s=vp-1.8.0',
+    //src: 'https://res.cloudinary.com/demo/video/upload/vc_vp9/outdoors.webm?_s=vp-1.8.0',
+    src: 'https://res.cloudinary.com/demo/video/upload/outdoors.mp4?_s=vp-1.8.0',
     autoplay: 'any', // false, true, 'muted', 'play', 'any'
     muted: false,
     volume: 1,
