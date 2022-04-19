@@ -132,7 +132,6 @@ const Player = function(el, options = {}, callback) {
 
   // Aspect ratio
   this._attributes.aspectRatioPercentage = aspectRatios[this._options.aspectRatio];
-  console.log('aspect ratio percentage', this._attributes.aspectRatioPercentage);
   if(this._attributes.aspectRatioPercentage) {
     injectStyle(`adserve-tv-player-${this._attributes.sessionId}`,
       `.adserve-tv-player-${this._attributes.sessionId} .video-container {
@@ -218,15 +217,11 @@ Player.prototype.createVideoSlot = function() {
   if(this._attributes.muted) {
     this._videoSlot.muted = true;
   }
-
+  // Append video slot
   this._slot.appendChild(this._videoSlot);
-
-  console.log(this._attributes.visible);
 
   // Create overlay
   this.createOverlay();
-
-
   // Set source
   this.setSrc(this._options.src);
   // Poster
@@ -325,10 +320,10 @@ Player.prototype.listenForUserActivity = function() {
   };
 
   // Any mouse movement will be considered user activity
-  this._el.addEventListener('mousedown', handleMouseDown);
-  this._el.addEventListener('mousemove', handleMouseMove);
-  this._el.addEventListener('mouseup', handleMouseUpAndMouseLeave);
-  this._el.addEventListener('mouseleave', handleMouseUpAndMouseLeave);
+  this._el.addEventListener('mousedown', handleMouseDown, false);
+  this._el.addEventListener('mousemove', handleMouseMove, false);
+  this._el.addEventListener('mouseup', handleMouseUpAndMouseLeave, false);
+  this._el.addEventListener('mouseleave', handleMouseUpAndMouseLeave, false);
 
   // Run an interval every 250 milliseconds instead of stuffing everything into
   // the mousemove/touchmove function itself, to prevent performance degradation.
@@ -538,7 +533,6 @@ Player.prototype.onPlayerError = function(message) {
   }
 }
 Player.prototype.addEventListener = function(eventName, callback, context) {
-  console.log('add event listener', eventName);
   const giveCallback = callback.bind(context);
   this._eventCallbacks[eventName] = giveCallback;
 }
@@ -777,16 +771,22 @@ Player.prototype.play = function(source) {
         this._attributes.volume = 0;
       }
       // Play
+      const maxPlayRetries = 3;
+      let playRetries = 0;
       this._playPromise = this._videoSlot.play();
       if(this._playPromise instanceof Promise) {
         this._playPromise.then(() => {
 
         }).catch((error) => {
-          console.log('play promise', this._options.autoplay, error);
-          if(this._options.autoplay === 'any') {
-            this._attributes.muted = true;
-            this._attributes.volume = 0;
-            this.play();
+          // Play failed
+          console.log('play failed', error);
+          if(playRetries <= maxPlayRetries) {
+            if (this._options.autoplay === 'any') {
+              this._attributes.muted = true;
+              this._attributes.volume = 0;
+              this.play();
+            }
+            playRetries++;
           }
         });
       }
