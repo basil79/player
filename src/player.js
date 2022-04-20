@@ -320,10 +320,10 @@ Player.prototype.listenForUserActivity = function() {
   };
 
   // Any mouse movement will be considered user activity
-  this._el.addEventListener('mousedown', handleMouseDown, false);
-  this._el.addEventListener('mousemove', handleMouseMove, false);
-  this._el.addEventListener('mouseup', handleMouseUpAndMouseLeave, false);
-  this._el.addEventListener('mouseleave', handleMouseUpAndMouseLeave, false);
+  this._el.addEventListener('mousedown', handleMouseDown);
+  this._el.addEventListener('mousemove', handleMouseMove);
+  this._el.addEventListener('mouseup', handleMouseUpAndMouseLeave);
+  this._el.addEventListener('mouseleave', handleMouseUpAndMouseLeave);
 
   // Run an interval every 250 milliseconds instead of stuffing everything into
   // the mousemove/touchmove function itself, to prevent performance degradation.
@@ -585,7 +585,7 @@ Player.prototype.setSrc = function(source) {
         this.play();
       }
 
-    }, false);
+    });
 
     this._videoSlot.addEventListener('waiting', () => {
       console.log('waiting - add waiting', this.getCurrentTime());
@@ -600,17 +600,17 @@ Player.prototype.setSrc = function(source) {
         }
       }
       this._videoSlot.addEventListener('timeupdate', timeUpdateListener);
-    }, false);
+    });
 
     this._videoSlot.addEventListener('canplay', () => {
       console.log('canplay - remove waiting');
       this._el.classList.remove('waiting');
-    }, false);
+    });
 
     this._videoSlot.addEventListener('canplaythrough', () => {
       console.log('canplaythrough - remove waiting');
       this._el.classList.remove('waiting');
-    }, false);
+    });
 
     this._videoSlot.addEventListener('play', () => {
       this._el.classList.remove('ended');
@@ -618,7 +618,7 @@ Player.prototype.setSrc = function(source) {
       // Update play button
       this._playButton && this._playButton.setState(true);
       this.onPlayerVideoPlaying();
-    }, false);
+    });
 
     this._videoSlot.addEventListener('pause', () => {
       this._el.classList.remove('ended');
@@ -626,13 +626,13 @@ Player.prototype.setSrc = function(source) {
       // Update play button
       this._playButton && this._playButton.setState(false);
       this.onPlayerVideoPaused();
-    }, false);
+    });
 
     this._videoSlot.addEventListener('volumechange', () => {
       console.log('event > volume change', this.getVolume());
       this._volumeButton && this._volumeButton.setState(!this.getVolume());
       this.onPlayerVolumeChange();
-    }, false);
+    });
 
     this._videoSlot.addEventListener('progress', (event) => {
       let range = 0;
@@ -649,7 +649,7 @@ Player.prototype.setSrc = function(source) {
         //console.log('loading...', loadPercentage);
         this._timeline && this._timeline.updateBuffer(loadPercentage);
       } catch (e) {}
-    }, false);
+    });
 
     this._videoSlot.addEventListener('timeupdate', (event) => {
       const percentPlayed = event.target.currentTime * 100.0 / event.target.duration;
@@ -664,11 +664,11 @@ Player.prototype.setSrc = function(source) {
       // Update timer
       this._timer && this._timer.updateTimeElapsed(event.target.currentTime);
 
-    }, false);
+    });
 
     this._videoSlot.addEventListener('loadeddata', () => {
       // TODO:
-    }, false);
+    });
 
     this._videoSlot.addEventListener('loadedmetadata', (event) => {
       this._attributes.duration = event.target.duration;
@@ -676,13 +676,13 @@ Player.prototype.setSrc = function(source) {
       this._timeline && this._timeline.setDuration(event.target.duration);
       // Update timer
       this._timer && this._timer.setDuration(event.target.duration);
-    }, false);
+    });
 
     this._videoSlot.addEventListener('ended', (event) => {
       console.log('ended', event.target);
       this._playButton && this._playButton.setState(false);
       this.onContentComplete();
-    }, false);
+    });
 
     this._videoSlot.addEventListener('error', (event) => {
       console.log('error - remove waiting');
@@ -690,7 +690,7 @@ Player.prototype.setSrc = function(source) {
       this._el.classList.remove('waiting');
       this.pause();
       this.onPlayerError('The media could not be loaded, either because the server or network failed or because the format is not supported.');
-    }, false);
+    });
 
     // Set source
     this._videoSlot.setAttribute('src', this._attributes.src);
@@ -842,12 +842,10 @@ Player.prototype.readyState = function() {
   return null;
 }
 Player.prototype.getDuration = function() {
-  // TODO:
-  return this._attributes.duration;
+  return this._videoSlot && this._attributes.src ? this._attributes.duration : -1;
 }
 Player.prototype.getCurrentTime = function() {
-  // TODO:
-  return this._attributes.currentTime;
+  return this._videoSlot && this._attributes.src ? this._attributes.currentTime : -1;
 }
 Player.prototype.setCurrentTime = function(seconds) {
   if (typeof seconds !== 'undefined') {
@@ -855,13 +853,15 @@ Player.prototype.setCurrentTime = function(seconds) {
       seconds = 0;
     }
     if (this._videoSlot && this._attributes.src) {
+      if(this._videoSlot.ended) {
+        this._el.classList.remove('ended');
+      }
       this._videoSlot.currentTime = seconds;
     }
   }
 }
 Player.prototype.getRemainingTime = function() {
-  // TODO:
-  return this._attributes.remainingTime;
+  return this._videoSlot && this._attributes.src ? this._attributes.remainingTime : -1;
 }
 Player.prototype.visible = function() {
   return this._attributes.visible;
