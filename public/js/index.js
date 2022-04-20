@@ -12,7 +12,7 @@
     src: 'https://va.media.tumblr.com/tumblr_ptc9j9pX4j1rkfg7k_480.mp4',
     poster: '', // poster
     clickThrough: '', // url
-    autoplay: true, // video autoplay
+    autoplay: false, // video autoplay
     loop: false, // loop
     muted: true, // video muted
     volume: 0, // video volume
@@ -53,7 +53,7 @@
     console.log('player1 is ready', this);
     // Play
     // HLS
-    //this.play();
+    this.play();
   });
   player1.addEventListener('PlayerVisibilityChange', function(visible) {
     console.log('player1 visibility change >', visible);
