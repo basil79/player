@@ -1,4 +1,4 @@
-import {findPosition, toHHMMSS} from './utils';
+import {getPointerPosition, toHHMMSS} from './utils';
 
 function Spinner() {
   const spinner = document.createElement('div');
@@ -75,9 +75,57 @@ function Timeline() {
 
   timeline.appendChild(timelineProgress);
 
-  this.render = () => timeline;
+  // Events
+  this.onclick = null;
+  this.onmousemove = null;
 
   let totalDuration = 0;
+  // Seek
+  let newTime = 0;
+  let canMove = false;
+
+  const calculateDistance = (event) => {
+    const position = getPointerPosition(timeline, event);
+    return position.x;
+  }
+
+  // Mousedown
+  timeline.addEventListener('mousedown', (event) => {
+    event.preventDefault();
+    // Stop event propagation to prevent double fire in progress-control.js
+    event.stopPropagation();
+    canMove = true;
+  });
+  // Mouseup
+  window.addEventListener('mouseup', () => {
+    canMove = false;
+  });
+  // Mousemove
+  timeline.addEventListener('mousemove', (event) => {
+    if(canMove) {
+      const distance = calculateDistance(event);
+      newTime = distance * totalDuration;
+      // Trigger onmousemove
+      if(this.onmousemove
+        && typeof this.onmousemove === 'function') {
+        // newTime > 0 ? (newTime > totalDuration ? totalDuration : newTime) : 0
+        this.onmousemove(newTime);
+      }
+    }
+  });
+  // Click
+  timeline.addEventListener('click', (event) => {
+    const distance = calculateDistance(event);
+    newTime = distance * totalDuration;
+    // Trigger onclick
+    if(this.onclick
+      && typeof this.onclick === 'function') {
+      // newTime > 0 ? (newTime > totalDuration ? totalDuration : newTime) : 0
+      this.onclick(newTime);
+    }
+  });
+
+  this.render = () => timeline;
   this.setDuration = (duration= 0) => {
     totalDuration = duration;
   }
@@ -90,23 +138,6 @@ function Timeline() {
   this.updateBuffer = (value) => {
     value < 0 ? value = 0 : value > 1 && (value = 1), timelineBuffer.style.width = 100 * value + '%'
   }
-  this.onMouseDown = function(callback) {
-    timeline.addEventListener('mousedown', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const left = event.offsetX;
-      const totalWidth = timeline.clientWidth;
-      const percentage = (left / totalWidth);
-      const newTime = totalDuration * percentage;
-
-      if(callback
-        && typeof callback === 'function') {
-        callback(newTime > 0 ? (newTime > totalDuration ? totalDuration : newTime) : 0);
-      }
-    }, false);
-  }
-
   this.hide = () => {
     timeline.style.display = 'none';
   }
@@ -128,11 +159,24 @@ function PrevButton() {
   }
 }
 
-// TODO:
 function PlayButton() {
   let isPlay = false;
   const playButton = document.createElement('button');
   playButton.classList.add('play');
+
+  // Events
+  this.onclick = null;
+
+  // Click
+  playButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    // Trigger onclick
+    if(this.onclick
+      && typeof this.onclick === 'function') {
+      this.onclick(isPlay);
+    }
+  });
 
   this.render = () => playButton;
   this.setState = (hasPlay) => {
@@ -142,16 +186,6 @@ function PlayButton() {
     } else {
       playButton.classList.remove('pause');
     }
-  }
-  this.onClick = function(callback) {
-    playButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if(callback
-        && typeof callback === 'function') {
-        callback(isPlay);
-      }
-    }, false);
   }
   this.hide = () => {
     playButton.style.display = 'none';
@@ -179,6 +213,20 @@ function VolumeButton() {
   const volumeButton = document.createElement('div');
   volumeButton.classList.add('volume');
 
+  // Events
+  this.onclick = null;
+
+  // Click
+  volumeButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    // Trigger onclick
+    if(this.onclick
+      && typeof this.onclick === 'function') {
+      this.onclick(isMuted);
+    }
+  });
+
   this.render = () => volumeButton;
   this.setState = (hasMuted) => {
     isMuted = hasMuted;
@@ -187,16 +235,6 @@ function VolumeButton() {
     } else {
       volumeButton.classList.remove('muted');
     }
-  }
-  this.onClick = function(callback) {
-    volumeButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if(callback
-        && typeof callback === 'function') {
-        callback(isMuted);
-      }
-    }, false);
   }
   this.hide = () => {
     volumeButton.style.display = 'none';
@@ -248,6 +286,20 @@ function FullscreenButton() {
   const fullscreenButton = document.createElement('button');
   fullscreenButton.classList.add('fullscreen');
 
+  // Events
+  this.onclick = null;
+
+  // Click
+  fullscreenButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    // Trigger onclick
+    if(this.onclick
+      && typeof this.onclick === 'function') {
+      this.onclick(isFullscreen);
+    }
+  });
+
   this.render = () => fullscreenButton;
   this.setState = (hasFullscreen) => {
     isFullscreen = hasFullscreen;
@@ -256,16 +308,6 @@ function FullscreenButton() {
     } else {
       fullscreenButton.classList.remove('off');
     }
-  }
-  this.onClick = function(callback) {
-    fullscreenButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if(callback
-        && typeof callback === 'function') {
-        callback(isFullscreen);
-      }
-    }, false);
   }
   this.hide = () => {
     fullscreenButton.style.display = 'none';
