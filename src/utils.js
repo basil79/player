@@ -184,6 +184,28 @@ function findPosition(el) {
   };
 }
 
+function getPointerPosition(el, event) {
+  const position = {};
+  const box = findPosition(el);
+  const boxW = el.offsetWidth;
+  const boxH = el.offsetHeight;
+
+  const boxY = box.top;
+  const boxX = box.left;
+  let pageY = event.pageY;
+  let pageX = event.pageX;
+
+  if (event.changedTouches) {
+    pageX = event.changedTouches[0].pageX;
+    pageY = event.changedTouches[0].pageY;
+  }
+
+  position.y = Math.max(0, Math.min(1, ((boxY - pageY) + boxH) / boxH));
+  position.x = Math.max(0, Math.min(1, (pageX - boxX) / boxW));
+
+  return position;
+}
+
 export {
   observeVisibility,
   visible,
@@ -199,5 +221,6 @@ export {
   aspectRatios,
   injectStyle,
   generateSessionId,
-  findPosition
+  findPosition,
+  getPointerPosition
 }

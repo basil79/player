@@ -603,12 +603,10 @@ Player.prototype.setSrc = function(source) {
     });
 
     this._videoSlot.addEventListener('canplay', () => {
-      console.log('canplay - remove waiting');
       this._el.classList.remove('waiting');
     });
 
     this._videoSlot.addEventListener('canplaythrough', () => {
-      console.log('canplaythrough - remove waiting');
       this._el.classList.remove('waiting');
     });
 
@@ -629,7 +627,6 @@ Player.prototype.setSrc = function(source) {
     });
 
     this._videoSlot.addEventListener('volumechange', () => {
-      console.log('event > volume change', this.getVolume());
       this._volumeButton && this._volumeButton.setState(!this.getVolume());
       this.onPlayerVolumeChange();
     });
@@ -678,8 +675,7 @@ Player.prototype.setSrc = function(source) {
       this._timer && this._timer.setDuration(event.target.duration);
     });
 
-    this._videoSlot.addEventListener('ended', (event) => {
-      console.log('ended', event.target);
+    this._videoSlot.addEventListener('ended', () => {
       this._playButton && this._playButton.setState(false);
       this.onContentComplete();
     });
@@ -706,37 +702,48 @@ Player.prototype.setSrc = function(source) {
     }
 
     // Play button
-    this._playButton && this._playButton.onClick(() => {
-      if(!this.paused()) {
-        this.pause();
-      } else {
-        this.play();
+    if(this._playButton) {
+      this._playButton.onclick = () => {
+        if(!this.paused()) {
+          this.pause();
+        } else {
+          this.play();
+        }
       }
-    });
+    }
 
-    this._timeline && this._timeline.onMouseDown((newTime) => {
-      console.log('mousedown - newTime', newTime);
-      this.setCurrentTime(newTime);
-    });
+    // Timeline
+    if(this._timeline) {
+      // Seek
+      this._timeline.onmousemove = (newTime) => {
+        this.setCurrentTime(newTime);
+      }
+      this._timeline.onclick = (newTime) => {
+        this.setCurrentTime(newTime);
+      }
+    }
 
     // Volume button
-    this._volumeButton && this._volumeButton.onClick(() => {
-      console.log('volume button click', this.getVolume());
-      if(!this.getVolume()) {
-        this.setVolume(1)
-      } else {
-        this.setVolume(0)
+    if(this._volumeButton) {
+      this._volumeButton.onclick = () => {
+        if(!this.getVolume()) {
+          this.setVolume(1)
+        } else {
+          this.setVolume(0)
+        }
       }
-    });
+    }
 
     // Fullscreen button
-    this._fullscreenButton && this._fullscreenButton.onClick(() => {
-      if(isFullscreen(document)) {
-        existFullscreen(document);
-      } else {
-        requestFullscreen(this._el);
+    if(this._fullscreenButton) {
+      this._fullscreenButton.onclick = () => {
+        if(isFullscreen(document)) {
+          existFullscreen(document);
+        } else {
+          requestFullscreen(this._el);
+        }
       }
-    });
+    }
 
   }
 
@@ -853,7 +860,7 @@ Player.prototype.setCurrentTime = function(seconds) {
       seconds = 0;
     }
     if (this._videoSlot && this._attributes.src) {
-      if(this._videoSlot.ended) {
+      if(seconds != this._attributes.duration) {
         this._el.classList.remove('ended');
       }
       this._videoSlot.currentTime = seconds;
