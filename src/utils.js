@@ -2,6 +2,8 @@
 // IntersectionObserver
 // Detect element visibility
 
+import * as browser from './browser';
+
 function observeVisibility(el, callback) {
   const observer = new IntersectionObserver(callback, {
     root: null, // viewport
@@ -80,6 +82,7 @@ function getBuffer(value) {
   return value + .1
 }
 
+/*
 function isIPhone() {
   const platforms = ['iPhone Simulator', 'iPhone'];
   if(!!navigator.platform) {
@@ -89,6 +92,7 @@ function isIPhone() {
   }
   return false;
 }
+ */
 
 function isFullscreen(el) {
   return hasFullscreen(el) ? true : false
@@ -101,7 +105,7 @@ function hasFullscreen(el) {
 }
 
 function requestFullscreen(el) {
-  if(isIPhone()) return el.querySelector('video').webkitEnterFullscreen();
+  if(browser.IS_IPHONE) return el.querySelector('video').webkitEnterFullscreen();
   if('requestFullscreen' in el) return el.requestFullscreen();
   if('webkitRequestFullscreen' in el) return el.webkitRequestFullscreen();
   return false;
