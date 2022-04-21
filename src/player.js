@@ -739,11 +739,22 @@ Player.prototype.setSrc = function(source) {
     // Timeline
     if(this._timeline) {
       // Seek
+      let videoWasPlaying = false;
+      this._timeline.onmousedown = () => {
+        // Slider active
+        this._el.classList.add('slider-active');
+        videoWasPlaying = !this.paused();
+        this.pause();
+      }
       this._timeline.onmousemove = (newTime) => {
         this.setCurrentTime(newTime);
       }
-      this._timeline.onclick = (newTime) => {
-        this.setCurrentTime(newTime);
+      this._timeline.onmouseup = () => {
+        // Slider inactive
+        this._el.classList.remove('slider-active');
+        if(videoWasPlaying && !this._videoSlot.ended) {
+          this.play();
+        }
       }
     }
 
@@ -787,9 +798,6 @@ Player.prototype.setPoster = function(poster) {
 }
 Player.prototype.getPoster = function() {
   return this._attributes.poster;
-}
-Player.prototype.load = function() {
-
 }
 Player.prototype.play = function(source) {
 

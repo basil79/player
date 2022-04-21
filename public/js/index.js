@@ -146,6 +146,7 @@
     console.log('player 5 error', message);
   });
 
+  /*
   // player 6
   const player6 = new adserve.tv.Player(document.getElementById('player6'), {
     title: 'My Title',
@@ -164,6 +165,7 @@
   }, function() {
     console.log('player6 - ready');
   });
+   */
 
 
 })()

@@ -1,4 +1,5 @@
 import {getPointerPosition, toHHMMSS} from './utils';
+import * as browser from './browser';
 
 function Spinner() {
   const spinner = document.createElement('div');
@@ -76,8 +77,9 @@ function Timeline() {
   timeline.appendChild(timelineProgress);
 
   // Events
-  this.onclick = null;
+  this.onmousedown = null;
   this.onmousemove = null;
+  this.onmouseup = null;
 
   let totalDuration = 0;
   // Seek
@@ -89,19 +91,26 @@ function Timeline() {
     return position.x;
   }
 
-  // Mousedown
-  timeline.addEventListener('mousedown', (event) => {
-    event.preventDefault();
-    // Stop event propagation to prevent double fire in progress-control.js
-    event.stopPropagation();
-    canMove = true;
-  });
-  // Mouseup
-  window.addEventListener('mouseup', () => {
+  const handleMouseUp = (event) => {
+    const doc = timeline.ownerDocument;
+
+    // Slider inactive
+    timeline.classList.remove('sliding');
+    if(this.onmouseup
+      && typeof this.onmouseup === 'function') {
+      this.onmouseup();
+    }
+
     canMove = false;
-  });
-  // Mousemove
-  timeline.addEventListener('mousemove', (event) => {
+
+    doc.removeEventListener('mousemove', handleMouseMove);
+    doc.removeEventListener('mouseup', handleMouseUp);
+    doc.removeEventListener('touchmove', handleMouseMove);
+    doc.removeEventListener('touchend', handleMouseUp);
+
+  }
+
+  const handleMouseMove = (event) => {
     if(canMove) {
       const distance = calculateDistance(event);
       newTime = distance * totalDuration;
@@ -112,17 +121,44 @@ function Timeline() {
         this.onmousemove(newTime);
       }
     }
-  });
-  // Click
-  timeline.addEventListener('click', (event) => {
-    const distance = calculateDistance(event);
-    newTime = distance * totalDuration;
-    // Trigger onclick
-    if(this.onclick
-      && typeof this.onclick === 'function') {
-      // newTime > 0 ? (newTime > totalDuration ? totalDuration : newTime) : 0
-      this.onclick(newTime);
+  }
+
+  const handleMouseDown = (event) => {
+
+    const doc = timeline.ownerDocument;
+
+    if(event.type === 'mousedown') {
+      event.preventDefault();
     }
+    // Stop event propagation to prevent double fire
+    //event.stopPropagation();
+    if(event.type === 'touchstart' && !browser.IS_CHROME) {
+      if(event.cancelable) event.preventDefault();
+    }
+
+    // Slider active
+    timeline.classList.add('sliding');
+    if(this.onmousedown
+      && typeof this.onmousedown === 'function') {
+      this.onmousedown();
+    }
+
+    canMove = true;
+
+    doc.addEventListener('mousemove', handleMouseMove);
+    doc.addEventListener('mouseup', handleMouseUp);
+    doc.addEventListener('touchmove', handleMouseMove);
+    doc.addEventListener('touchend', handleMouseUp);
+
+    // Trigger mouseMove
+    handleMouseMove(event);
+  }
+
+  timeline.addEventListener('mousedown', handleMouseDown);
+  timeline.addEventListener('touchstart', handleMouseDown);
+  timeline.addEventListener('click', (event) => {
+    event.stopPropagation();
+    event.preventDefault();
   });
 
   this.render = () => timeline;

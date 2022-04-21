@@ -214,6 +214,7 @@
         }
         /*.adserve-tv-player.hovered .header,*/
         .adserve-tv-player.user-active .header,
+        .adserve-tv-player.slider-active .header,
         .adserve-tv-player.paused .header {
             opacity: 1;
             visibility: visible;
@@ -237,6 +238,7 @@
         }
         /*.adserve-tv-player.hovered .gradient,*/
         .adserve-tv-player.user-active .gradient,
+        .adserve-tv-player.slider-active .gradient,
         .adserve-tv-player.paused .gradient {
             opacity: 1;
             visibility: visible;
@@ -292,6 +294,7 @@
         }
         /*.adserve-tv-player.hovered .controls,*/
         .adserve-tv-player.user-active .controls,
+        .adserve-tv-player.slider-active .controls,
         .adserve-tv-player.paused .controls {
             opacity: 1;
             visibility: visible;
@@ -313,12 +316,15 @@
             opacity: 0.01;
             visibility: hidden;
         }
-        .adserve-tv-player .timeline:hover {
+        .adserve-tv-player.slider-active .timeline,
+        .adserve-tv-player .timeline:hover,
+        .adserve-tv-player .timeline.sliding {
             height: 8px;
             bottom: 54px;
         }
         /*.adserve-tv-player.hovered .timeline,*/
         .adserve-tv-player.user-active .timeline,
+        .adserve-tv-player.slider-active .timeline,
         .adserve-tv-player.paused .timeline {
             opacity: 1;
             visibility: visible;
@@ -614,7 +620,7 @@
 <br/>
 <br/>
 
-<script src="js/player.js?v=15"></script>
+<script src="js/player.js?v=23"></script>
 <script src="js/index.js"></script>
 </body>
 </html>
