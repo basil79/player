@@ -23,6 +23,7 @@ import {
   Timer,
   VolumeButton
 } from './controls';
+import * as browser from './browser';
 
 const Player = function(el, options = {}, callback) {
   console.log('player', el, options);
@@ -51,6 +52,8 @@ const Player = function(el, options = {}, callback) {
   // Big Play
   this._bigPlayButton = null;
 
+  // Control Bar
+  this._controlBar = null;
   // Controls
   this._timeline = null;
   this._prevButton = null;
@@ -89,6 +92,7 @@ const Player = function(el, options = {}, callback) {
       return visible(this.intersectionRatio, this.visibilityThreshold);
     },
     prevVisible: true,
+    inactivityTimeout: 2000,
     version: '!!#Version#!!'
   };
 
@@ -129,7 +133,6 @@ const Player = function(el, options = {}, callback) {
     this._attributes.muted = true;
     this._attributes.volume = 0;
   }
-
   // Aspect ratio
   this._attributes.aspectRatioPercentage = aspectRatios[this._options.aspectRatio];
   if(this._attributes.aspectRatioPercentage) {
@@ -138,6 +141,10 @@ const Player = function(el, options = {}, callback) {
         padding-bottom: ${this._attributes.aspectRatioPercentage}
       }`
     )
+  }
+  // Inactivity Timeout
+  if(this._options.inactivityTimeout) {
+    this._attributes.inactivityTimeout = this._options.inactivityTimeout;
   }
 
   this.EVENTS = {
@@ -325,6 +332,16 @@ Player.prototype.listenForUserActivity = function() {
   this._el.addEventListener('mouseup', handleMouseUpAndMouseLeave);
   this._el.addEventListener('mouseleave', handleMouseUpAndMouseLeave);
 
+  // control bar would no longer be hidden by default timeout.
+  if(this._controlBar && !browser.IS_IOS && !browser.IS_ANDROID) {
+    this._controlBar.addEventListener('mouseenter', () => {
+      this._options.inactivityTimeout = 0;
+    });
+    this._controlBar.addEventListener('mouseleave', () => {
+      this._options.inactivityTimeout = this._attributes.inactivityTimeout;
+    });
+  }
+
   // Run an interval every 250 milliseconds instead of stuffing everything into
   // the mousemove/touchmove function itself, to prevent performance degradation.
   let inactivityTimeout;
@@ -386,9 +403,14 @@ Player.prototype.createOverlay = function() {
   overlay.appendChild(this._bigPlayButton.render());
 
   if(this._options.controls) {
+
+    // Control Bar
+    this._controlBar = document.createElement('div');
+    this._controlBar.classList.add('control-bar');
+
     // Timeline
     this._timeline = new Timeline();
-    overlay.appendChild(this._timeline.render());
+    this._controlBar.appendChild(this._timeline.render());
 
     // Controls
     const controls = document.createElement('div');
@@ -428,8 +450,10 @@ Player.prototype.createOverlay = function() {
     this._fullscreenButton = new FullscreenButton();
     controls.appendChild(this._fullscreenButton.render());
 
-    // Append controls to overlay
-    overlay.appendChild(controls);
+    // Append controls to control bar
+    this._controlBar.appendChild(controls);
+    // Append control bar to overlay
+    overlay.appendChild(this._controlBar);
 
   }
 
