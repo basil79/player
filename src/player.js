@@ -24,6 +24,7 @@ import {
   VolumeButton
 } from './controls';
 import * as browser from './browser';
+import './css/styles.css';
 
 const Player = function(el, options = {}, callback) {
   console.log('player', el, options);
