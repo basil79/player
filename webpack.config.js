@@ -39,6 +39,13 @@ module.exports = function(env, args) {
             replace: `${version}`
           }]
         }
+      },{
+        test: /\.s?css$/,
+        use: [{
+          loader: 'style-loader'
+        },{
+          loader: 'css-loader'
+        }]
       }]
     }
   }
