@@ -11,12 +11,14 @@
     //src: 'https://playertest.longtailvideo.com/adaptive/elephants_dream_v4/redundant.m3u8', // .mp4, .webm, .ogv .m3u8 (manifests and segments)
     src: 'https://va.media.tumblr.com/tumblr_ptc9j9pX4j1rkfg7k_480.mp4',
     poster: '', // poster
-    clickThrough: '', // url
-    autoplay: false, // video autoplay
+    url: '', // url
+    autoplay: false, // video autoplay - false, true, 'muted', 'play', 'any'
     loop: false, // loop
     muted: true, // video muted
     volume: 0, // video volume
     controls: true, // show controls
+    textTracks: {},
+    stickyFloating: true, // TODO:
     ads: {
       beforeClip: 1, // start ads before clip
       desktop: {
@@ -42,13 +44,14 @@
         ver: '1.0',
         complete: 1,
         nodes: [{
-          asi: 'ssp4.tv',
+          asi: 'adserve.tv',
           hp: 1,
           sid: ''
         }]
       },
       customMacros: []
     },
+    abTest: {} // AB Test
   }, function() {
     console.log('player1 is ready', this);
     // Play
