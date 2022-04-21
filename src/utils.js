@@ -159,6 +159,26 @@ function generateSessionId() {
   return sessionId;
 }
 
+function computedStyle(el, prop) {
+  if (!el || !prop) {
+    return '';
+  }
+
+  if (typeof window.getComputedStyle === 'function') {
+    let computedStyleValue;
+
+    try {
+      computedStyleValue = window.getComputedStyle(el);
+    } catch (e) {
+      return '';
+    }
+
+    return computedStyleValue ? computedStyleValue.getPropertyValue(prop) || computedStyleValue[prop] : '';
+  }
+
+  return '';
+}
+
 function findPosition(el) {
   if (!el || (el && !el.offsetParent)) {
     return {
@@ -189,6 +209,7 @@ function findPosition(el) {
 }
 
 function getPointerPosition(el, event) {
+  /*
   const position = {};
   const box = findPosition(el);
   const boxW = el.offsetWidth;
@@ -207,6 +228,54 @@ function getPointerPosition(el, event) {
   position.y = Math.max(0, Math.min(1, ((boxY - pageY) + boxH) / boxH));
   position.x = Math.max(0, Math.min(1, (pageX - boxX) / boxW));
 
+  return position;
+   */
+  const translated = {
+    x: 0,
+    y: 0
+  };
+
+  if (browser.IS_IOS) {
+    let item = el;
+
+    while (item && item.nodeName.toLowerCase() !== 'html') {
+      const transform = computedStyle(item, 'transform');
+
+      if (/^matrix/.test(transform)) {
+        const values = transform.slice(7, -1).split(/,\s/).map(Number);
+
+        translated.x += values[4];
+        translated.y += values[5];
+      } else if (/^matrix3d/.test(transform)) {
+        const values = transform.slice(9, -1).split(/,\s/).map(Number);
+
+        translated.x += values[12];
+        translated.y += values[13];
+      }
+
+      item = item.parentNode;
+    }
+  }
+
+  const position = {};
+  const boxTarget = findPosition(event.target);
+  const box = findPosition(el);
+  const boxW = box.width;
+  const boxH = box.height;
+  let offsetY = event.offsetY - (box.top - boxTarget.top);
+  let offsetX = event.offsetX - (box.left - boxTarget.left);
+
+  if (event.changedTouches) {
+    offsetX = event.changedTouches[0].pageX - box.left;
+    offsetY = event.changedTouches[0].pageY + box.top;
+    if (browser.IS_IOS) {
+      offsetX -= translated.x;
+      offsetY -= translated.y;
+    }
+  }
+
+  position.y = (1 - Math.max(0, Math.min(1, offsetY / boxH)));
+  position.x = Math.max(0, Math.min(1, offsetX / boxW));
   return position;
 }
 

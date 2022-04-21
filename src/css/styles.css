@@ -36,13 +36,13 @@
 .adserve-tv-player {
     position: relative;
 }
-/*
-.adserve-tv-player button {
-    margin: 0;
-    padding: 0;
-    line-height: normal;
+.adserve-tv-player.sticky {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 9999;
+    width: 320px;
 }
- */
 .adserve-tv-player .video-container {
     padding-bottom: 56.25%;
 }

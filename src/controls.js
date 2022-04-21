@@ -1,4 +1,4 @@
-import {getPointerPosition, toHHMMSS} from './utils';
+import {findPosition, getPointerPosition, toHHMMSS} from './utils';
 import * as browser from './browser';
 
 function Spinner() {

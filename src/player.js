@@ -1,7 +1,7 @@
 import { AdsManager } from 'ads-manager';
 import {
   aspectRatios,
-  existFullscreen, generateSessionId,
+  existFullscreen, findPosition, generateSessionId,
   getMimeType,
   injectStyle,
   isFullscreen,
@@ -115,6 +115,7 @@ const Player = function(el, options = {}, callback) {
     volume: 1,
     controls: true,
     inactivityTimeout: 2000,
+    stickyFloating: false,
     textTracks: {}, // closed captions, subtitles
     ads: {}
   };
@@ -238,6 +239,19 @@ Player.prototype.createVideoSlot = function() {
   // User Active
   this.userActive(true);
   this.listenForUserActivity();
+
+  // Sticky Floating
+  if(this._options.stickyFloating) {
+    const position = findPosition(this._el);
+    const handleScroll = (event) => {
+      if(window.scrollY > (position.top + position.height)) {
+        this._el.classList.add('sticky');
+      } else {
+        this._el.classList.remove('sticky');
+      }
+    }
+    window.addEventListener('scroll', handleScroll);
+  }
 
   // TODO:
   setTimeout(() => {
