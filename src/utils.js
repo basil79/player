@@ -82,17 +82,10 @@ function getBuffer(value) {
   return value + .1
 }
 
-/*
-function isIPhone() {
-  const platforms = ['iPhone Simulator', 'iPhone'];
-  if(!!navigator.platform) {
-    while (platforms.length) {
-      if(navigator.platform === platforms.pop()) return true;
-    }
-  }
-  return false;
+const startTime = new Date().getTime();
+function getRunTime() {
+  return new Date().getTime() - startTime;
 }
- */
 
 function isFullscreen(el) {
   return hasFullscreen(el) ? true : false
@@ -292,6 +285,7 @@ export {
   supportsHLS,
   toHHMMSS,
   getBuffer,
+  getRunTime,
   isFullscreen,
   requestFullscreen,
   existFullscreen,

@@ -1,6 +1,6 @@
 {
   "name": "player",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "HTML5 Video Player",
   "main": "./src/player.js",
   "publishConfig": {
@@ -25,11 +25,21 @@
   "keywords": [
     "html5-video-player",
     "video-player",
+    "video-ad-player",
     "html5-video",
     "html-video",
     "video",
     "hls",
-    "mpeg-dash"
+    "mpeg-dash",
+    "vast",
+    "vpaid",
+    "vmap",
+    "video-ads",
+    "ad-manager",
+    "advertising",
+    "iab",
+    "instream",
+    "outstream"
   ],
   "author": "Basil Goldman",
   "license": "Apache-2.0",
