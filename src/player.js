@@ -25,9 +25,10 @@ import {
 } from './controls';
 import * as browser from './browser';
 import './css/styles.css';
+import {addHandler as initTimeBus} from './time-bus';
+import {checkIfPlayAds, setAdsOptions} from './ads';
 
 const Player = function(el, options = {}, callback) {
-  console.log('player', el, options);
 
   if(!(el instanceof Element || el instanceof HTMLDocument)) {
     throw new Error('player element is not defined');
@@ -116,8 +117,8 @@ const Player = function(el, options = {}, callback) {
     controls: true,
     inactivityTimeout: 2000,
     stickyFloating: false,
-    textTracks: {}, // closed captions, subtitles
-    ads: {}
+    textTracks: null, // closed captions, subtitles
+    ads: null // ads
   };
 
   // Assign options
@@ -190,11 +191,15 @@ const Player = function(el, options = {}, callback) {
   // Create slot
   this.createSlot();
 
+
+
+  /*
   // TODO: ads
   if(options.hasOwnProperty('adContainer')) {
     const adsManager = new AdsManager(options.adContainer);
     console.log(adsManager);
   }
+   */
 
 }
 Player.prototype.createSlot = function() {
@@ -251,6 +256,12 @@ Player.prototype.createVideoSlot = function() {
       }
     }
     window.addEventListener('scroll', handleScroll);
+  }
+  // Ads
+  if(this._options.ads) {
+    console.log('ads', this._options.ads);
+    setAdsOptions(this._options.ads);
+    initTimeBus(checkIfPlayAds);
   }
 
   // TODO:
@@ -395,7 +406,6 @@ Player.prototype.listenForUserActivity = function() {
 
 }
 Player.prototype.createOverlay = function() {
-  console.log('create controls');
 
   // Overlay
   const overlay = document.createElement('div');
@@ -613,7 +623,6 @@ Player.prototype.setSrc = function(source) {
 
     // Attach events
     this._videoSlot.addEventListener('loadstart', () => {
-      console.log('loadstart', this._options.autoplay, this._videoSlot);
       // Autoplay 'muted'
       if(this._options.autoplay === 'muted') {
         this.play();
@@ -623,17 +632,16 @@ Player.prototype.setSrc = function(source) {
         || this._options.autoplay === 'any') {
         this.play();
       }
-
     });
 
     this._videoSlot.addEventListener('waiting', () => {
-      console.log('waiting - add waiting', this.getCurrentTime());
+      //console.log('waiting - add waiting', this.getCurrentTime());
       this._el.classList.add('waiting');
       this._attributes.waitingTime = this.getCurrentTime();
       const timeUpdateListener = () => {
-        console.log('timeupdate - waiting', this._attributes.waitingTime, this.getCurrentTime());
+        //console.log('timeupdate - waiting', this._attributes.waitingTime, this.getCurrentTime());
         if(this._attributes.waitingTime !== this.getCurrentTime()) {
-          console.log('timeupdate - remove waiting');
+          //console.log('timeupdate - remove waiting');
           this._el.classList.remove('waiting');
           this._videoSlot.removeEventListener('timeupdate', timeUpdateListener);
         }
