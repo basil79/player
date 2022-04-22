@@ -179,6 +179,29 @@ function computedStyle(el, prop) {
   return '';
 }
 
+function getBoundingClientRect(el) {
+  if (el && el.getBoundingClientRect && el.parentNode) {
+    const rect = el.getBoundingClientRect();
+    const result = {};
+
+    ['bottom', 'height', 'left', 'right', 'top', 'width'].forEach(k => {
+      if (rect[k] !== undefined) {
+        result[k] = rect[k];
+      }
+    });
+
+    if (!result.height) {
+      result.height = parseFloat(computedStyle(el, 'height'));
+    }
+
+    if (!result.width) {
+      result.width = parseFloat(computedStyle(el, 'width'));
+    }
+
+    return result;
+  }
+}
+
 function findPosition(el) {
   if (!el || (el && !el.offsetParent)) {
     return {
@@ -209,27 +232,6 @@ function findPosition(el) {
 }
 
 function getPointerPosition(el, event) {
-  /*
-  const position = {};
-  const box = findPosition(el);
-  const boxW = el.offsetWidth;
-  const boxH = el.offsetHeight;
-
-  const boxY = box.top;
-  const boxX = box.left;
-  let pageY = event.pageY;
-  let pageX = event.pageX;
-
-  if (event.changedTouches) {
-    pageX = event.changedTouches[0].pageX;
-    pageY = event.changedTouches[0].pageY;
-  }
-
-  position.y = Math.max(0, Math.min(1, ((boxY - pageY) + boxH) / boxH));
-  position.x = Math.max(0, Math.min(1, (pageX - boxX) / boxW));
-
-  return position;
-   */
   const translated = {
     x: 0,
     y: 0
@@ -266,8 +268,10 @@ function getPointerPosition(el, event) {
   let offsetX = event.offsetX - (box.left - boxTarget.left);
 
   if (event.changedTouches) {
-    offsetX = event.changedTouches[0].pageX - box.left;
-    offsetY = event.changedTouches[0].pageY + box.top;
+    // TODO:
+    const _box = getBoundingClientRect(el);
+    offsetX = event.changedTouches[0].pageX - _box.left; //box.left;
+    offsetY = event.changedTouches[0].pageY + _box.top; //box.top;
     if (browser.IS_IOS) {
       offsetX -= translated.x;
       offsetY -= translated.y;
@@ -294,6 +298,7 @@ export {
   aspectRatios,
   injectStyle,
   generateSessionId,
+  getBoundingClientRect,
   findPosition,
   getPointerPosition
 }
