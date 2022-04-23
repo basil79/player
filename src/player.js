@@ -1,7 +1,8 @@
-import { AdsManager } from 'ads-manager';
 import {
-  aspectRatios,
-  existFullscreen, findPosition, generateSessionId,
+  ASPECT_RATIOS,
+  existFullscreen,
+  findPosition,
+  generateSessionId,
   getMimeType,
   injectStyle,
   isFullscreen,
@@ -25,8 +26,7 @@ import {
 } from './controls';
 import * as browser from './browser';
 import './css/styles.css';
-import {addHandler as initTimeBus} from './time-bus';
-import {checkIfPlayAds, setAdsOptions} from './ads';
+import {initAds} from './ads';
 
 const Player = function(el, options = {}, callback) {
 
@@ -137,7 +137,7 @@ const Player = function(el, options = {}, callback) {
     this._attributes.volume = 0;
   }
   // Aspect ratio
-  this._attributes.aspectRatioPercentage = aspectRatios[this._options.aspectRatio];
+  this._attributes.aspectRatioPercentage = ASPECT_RATIOS[this._options.aspectRatio];
   if(this._attributes.aspectRatioPercentage) {
     injectStyle(`adserve-tv-player-${this._attributes.sessionId}`,
       `.adserve-tv-player-${this._attributes.sessionId} .video-container {
@@ -191,16 +191,6 @@ const Player = function(el, options = {}, callback) {
   // Create slot
   this.createSlot();
 
-
-
-  /*
-  // TODO: ads
-  if(options.hasOwnProperty('adContainer')) {
-    const adsManager = new AdsManager(options.adContainer);
-    console.log(adsManager);
-  }
-   */
-
 }
 Player.prototype.createSlot = function() {
   this._slot = document.createElement('div');
@@ -248,7 +238,7 @@ Player.prototype.createVideoSlot = function() {
   // Sticky Floating
   if(this._options.stickyFloating) {
     const position = findPosition(this._el);
-    const handleScroll = (event) => {
+    const handleScroll = () => {
       if(window.scrollY > (position.top + position.height)) {
         this._el.classList.add('sticky');
       } else {
@@ -256,12 +246,6 @@ Player.prototype.createVideoSlot = function() {
       }
     }
     window.addEventListener('scroll', handleScroll);
-  }
-  // Ads
-  if(this._options.ads) {
-    console.log('ads', this._options.ads);
-    setAdsOptions(this._options.ads);
-    initTimeBus(checkIfPlayAds);
   }
 
   // TODO:
@@ -273,9 +257,24 @@ Player.prototype.createVideoSlot = function() {
       && typeof this._callback === 'function') {
       this._callback();
     }
+
+    // Ads
+    if(this._options.ads) {
+      console.log('ads', this._options.ads);
+      this.createAdContainer();
+    }
+
     this.onPlayerReady();
   }, 75);
 
+}
+Player.prototype.createAdContainer = function() {
+  const adContainer = document.createElement('div');
+  adContainer.classList.add('ad-container');
+  this._slot.appendChild(adContainer);
+
+  // Initialize ads
+  initAds(this, adContainer, this._options.ads);
 }
 Player.prototype.userActive = function(isActive) {
   if(isActive === undefined) {

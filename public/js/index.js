@@ -18,21 +18,18 @@
     volume: 0, // video volume
     controls: true, // show controls
     textTracks: {},
-    stickyFloating: true, // TODO:
+    stickyFloating: false, // TODO:
     ads: {
-      beforeClip: 1, // start ads before clip
       desktop: {
         inView: {
           vastUrl: 'https://raw.githubusercontent.com/InteractiveAdvertisingBureau/VAST_Samples/master/VAST%204.0%20Samples/Inline_Simple.xml',
           interval: 5000, // Ad request interval after AdImpression
-          retryInterval: 10000, // Ad request retry interval after AdError
-          useSmartInterval: true
+          retryInterval: 10000 // Ad request retry interval after AdError
         },
         notInView: {
-          vastUrl: 'https://raw.githubusercontent.com/InteractiveAdvertisingBureau/VAST_Samples/master/VAST%204.0%20Samples/Inline_Simple.xml',
-          interval: 5000,
-          retryInterval: 10000,
-          useSmartInterval: true
+          vastUrl: 'http://v.adserve.tv/pg/vast-vpaid.xml',
+          interval: 15000,
+          retryInterval: 10000
         },
       },
       gdpr: false, // GDPR
