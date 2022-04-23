@@ -21,7 +21,7 @@ function visible(intersectionRatio, threshold) {
   return intersectionRatio * 100 >= threshold
 }
 
-const mimeTypes = {
+const MIME_TYPES = {
   webm: 'video/webm',
   opus: 'video/ogg',
   ogv: 'video/ogg',
@@ -49,7 +49,7 @@ const mimeTypes = {
 
 function getMimeType(src = '') {
   const ext = getFileExtension(src);
-  const mimeType = mimeTypes[ext.toLowerCase()];
+  const mimeType = MIME_TYPES[ext.toLowerCase()];
   return mimeType || '';
 }
 
@@ -87,6 +87,10 @@ function getRunTime() {
   return new Date().getTime() - startTime;
 }
 
+function millisecondsToSeconds(milliseconds) {
+  return Math.floor(milliseconds / 1000);
+}
+
 function isFullscreen(el) {
   return hasFullscreen(el) ? true : false
 }
@@ -110,7 +114,7 @@ function existFullscreen(el) {
   return false;
 }
 
-const aspectRatios = {
+const ASPECT_RATIOS = {
   '1:1': '100%',
   '16:9': '56.25%', // 9 / 16 * 100 = 56.25
   '4:3': '75%',
@@ -279,17 +283,18 @@ function getPointerPosition(el, event) {
 export {
   observeVisibility,
   visible,
-  mimeTypes,
+  MIME_TYPES,
   getMimeType,
   getFileExtension,
   supportsHLS,
   toHHMMSS,
   getBuffer,
   getRunTime,
+  millisecondsToSeconds,
   isFullscreen,
   requestFullscreen,
   existFullscreen,
-  aspectRatios,
+  ASPECT_RATIOS,
   injectStyle,
   generateSessionId,
   getBoundingClientRect,
