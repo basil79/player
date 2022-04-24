@@ -35,7 +35,7 @@
       },
       mobile: {
         inView: {
-          vastUrl: 'http://v.adserve.tv/pg/vast-vpaid.xml',
+          vastUrl: 'http://v.adserve.tv/pg/vast.xml',
           interval: 5000, // Ad request interval after AdImpression
           retryInterval: 10000 // Ad request retry interval after AdError
         },
