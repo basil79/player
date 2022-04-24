@@ -231,6 +231,11 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
     });
     adsManager.addEventListener('AdVideoComplete', function () {
       console.log('AdVideoComplete');
+      // Resume player
+      instance._el.classList.remove('ads');
+      if(!instance.ended()) {
+        instance.play();
+      }
     });
     adsManager.addEventListener('AdStopped', function () {
       console.log('AdStopped');
@@ -246,12 +251,6 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
       lastAdHasError = false;
       isAdPlaying = false;
       lastAdCompleteRuntime = getRunTime();
-
-      // Resume player
-      instance._el.classList.remove('ads');
-      if(!instance.ended()) {
-        instance.play();
-      }
 
     });
 
