@@ -3,7 +3,6 @@ import {getRunTime, millisecondsToSeconds} from './utils';
 import {IS_MOBILE_AND_TABLET} from './browser';
 import {AdsManager} from 'ads-manager';
 
-// TODO:
 let lastAdHasError = false;
 let lastAdErrorRuntime = 0;
 let lastAdRequestRuntime = 0;
@@ -11,7 +10,8 @@ let lastAdCompleteRuntime = 0;
 let isAdPlaying = false;
 
 // TODO:
-let instance = null;
+let instance = null; // player instance
+
 let adContainer = null;
 let adsManager = null;
 let options = {
@@ -146,6 +146,7 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
   if(adContainer) {
 
     adsManager = new AdsManager(adContainer);
+    console.log('AdsManager version is', adsManager.getVersion());
 
     const handleAdError = (adError) => {
       console.log('AdError', adError);
@@ -196,6 +197,13 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
     });
     adsManager.addEventListener('AdStarted', function() {
       console.log('AdStarted');
+
+      // Pause player
+      instance._el.classList.add('ads');
+      if(!instance.paused()) {
+        instance.pause();
+      }
+
     });
     adsManager.addEventListener('AdDurationChange', function() {
       console.log('AdDurationChange', adsManager.getDuration());
@@ -205,11 +213,6 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
     });
     adsManager.addEventListener('AdVideoStart', function() {
       console.log('AdVideoStart');
-      // Pause player
-      instance._el.classList.add('ads');
-      if(!instance.paused()) {
-        instance.pause();
-      }
     });
     adsManager.addEventListener('AdImpression', function() {
       console.log('AdImpression');
@@ -231,11 +234,6 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
     });
     adsManager.addEventListener('AdVideoComplete', function () {
       console.log('AdVideoComplete');
-      // Resume player
-      instance._el.classList.remove('ads');
-      if(!instance.ended()) {
-        instance.play();
-      }
     });
     adsManager.addEventListener('AdStopped', function () {
       console.log('AdStopped');
@@ -251,6 +249,12 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
       lastAdHasError = false;
       isAdPlaying = false;
       lastAdCompleteRuntime = getRunTime();
+
+      // Resume player
+      instance._el.classList.remove('ads');
+      if(!instance.ended()) {
+        instance.play();
+      }
 
     });
 

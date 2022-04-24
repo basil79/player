@@ -124,7 +124,7 @@ const Player = function(el, options = {}, callback) {
   // Assign options
   Object.assign(this._options, options);
 
-  // Set attributed
+  // Set attributes
   // Muted
   this._attributes.muted = this._options.muted;
   this._attributes.volume = this._attributes.muted ? 0 : this._options.volume;
