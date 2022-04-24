@@ -111,30 +111,28 @@ function getInterval() {
 }
 
 function playAd() {
-  console.log('play ad');
   if(adsManager) {
     isAdPlaying = true;
     lastAdRequestRuntime = getRunTime();
     adsManager.requestAds(getVastUrl());
   }
-
-  /*
-  setTimeout(() => {
-    isAdPlaying = false;
-    lastAdCompleteRuntime = getRunTime();
-    console.log('ad complete');
-  }, 30000)
-   */
-
 }
 
 function checkIfPlayAds() {
-  //console.log('check if play ad', getRunTime(), getInterval(), IS_MOBILE_AND_TABLET, instance.visible(), getVastUrl());
-  if(getRunTime() - lastAdCompleteRuntime >= getInterval() * 1000 && !isAdPlaying) {
+
+  /*
+  if(lastAdCompleteRuntime === 0 && !instance.paused()) {
+    console.log('pre roll');
     playAd();
   }
+   */
+
+  if(getRunTime() - lastAdCompleteRuntime >= getInterval() * 1000 && !isAdPlaying && !instance.ended() && !instance.paused()) {
+    console.log(getInterval() * 1000);
+    playAd();
+  }
+
   return;
-  //this.playAd();
 }
 
 function initAds(playerInstance, givenAdContainer, givenOptions) {
@@ -148,11 +146,14 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
   if(adContainer) {
 
     adsManager = new AdsManager(adContainer);
-    // Subscribe for events
-    adsManager.addEventListener('AdError', function(adError) {
+
+    const handleAdError = (adError) => {
       console.log('AdError', adError);
 
+      lastAdHasError = true;
+      isAdPlaying = false;
       lastAdErrorRuntime = getRunTime();
+      lastAdCompleteRuntime = lastAdErrorRuntime;
 
       if(adsManager) {
         adsManager.destroy();
@@ -161,7 +162,9 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
       if(instance.paused()) {
         instance.play();
       }
-    });
+    };
+    // Subscribe for events
+    adsManager.addEventListener('AdError', handleAdError);
     adsManager.addEventListener('AdsManagerLoaded', function() {
       console.log('AdsManagerLoaded', instance._videoSlot.clientWidth, instance._videoSlot.clientHeight);
       const width = instance._videoSlot.clientWidth;
@@ -173,6 +176,7 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
       } catch (adError) {
         // Play the video without ads, if an error occurs
         console.log('AdsManager could not initialize ad');
+        handleAdError(adError);
       }
 
     });
@@ -184,6 +188,7 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
         } catch (adError) {
           // Play the video without ads, if an error occurs
           console.log('AdsManager could not be started');
+          handleAdError(adError);
         }
       } else {
         console.log('AdsManager > AdLoaded > ad is not linear');
@@ -191,8 +196,6 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
     });
     adsManager.addEventListener('AdStarted', function() {
       console.log('AdStarted');
-      // Pause player
-      instance.pause();
     });
     adsManager.addEventListener('AdDurationChange', function() {
       console.log('AdDurationChange', adsManager.getDuration());
@@ -202,6 +205,11 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
     });
     adsManager.addEventListener('AdVideoStart', function() {
       console.log('AdVideoStart');
+      // Pause player
+      instance._el.classList.add('ads');
+      if(!instance.paused()) {
+        instance.pause();
+      }
     });
     adsManager.addEventListener('AdImpression', function() {
       console.log('AdImpression');
@@ -235,10 +243,16 @@ function initAds(playerInstance, givenAdContainer, givenOptions) {
     });
     adsManager.addEventListener('AllAdsCompleted', function () {
       console.log('AllAdsCompleted');
+      lastAdHasError = false;
       isAdPlaying = false;
       lastAdCompleteRuntime = getRunTime();
+
       // Resume player
-      instance.play();
+      instance._el.classList.remove('ads');
+      if(!instance.ended()) {
+        instance.play();
+      }
+
     });
 
 
