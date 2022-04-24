@@ -828,10 +828,7 @@ Player.prototype.play = function(source) {
     this.setSrc(source);
   }
 
-  console.log('play > visible', this._attributes.visible, source);
-
   if(this._videoSlot && this._attributes.src) {
-    console.log('play > source exists > try to play', this._attributes.mimeType, this._attributes.src, this._videoSlot.paused);
     if(this._videoSlot.paused) {
       if(this._attributes.muted) {
         this._videoSlot.muted = true;
@@ -869,15 +866,18 @@ Player.prototype.play = function(source) {
 
 }
 Player.prototype.paused = function() {
-  return this._videoSlot && this._videoSlot.paused;
+  return this._videoSlot ? this._videoSlot.paused : false;
 }
 Player.prototype.pause = function() {
   if(this._videoSlot && !this._videoSlot.paused) {
     this._videoSlot.pause();
   }
 }
+Player.prototype.ended = function() {
+  return this._videoSlot ? this._videoSlot.ended : false;
+}
 Player.prototype.getVolume = function() {
-  return this._videoSlot.muted ? 0 : this._videoSlot.volume;
+  return this._videoSlot ? (this._videoSlot.muted ? 0 : this._videoSlot.volume) : this._attributes.volume;
 }
 Player.prototype.setVolume = function(value) {
   if(this._videoSlot) {
@@ -944,12 +944,10 @@ Player.prototype.exitFullscreen = function() {
   }
 }
 Player.prototype.getWidth = function() {
-  // TODO:
-  return this._videoSlot.clientWidth;
+  return this._el.clientWidth;
 }
 Player.prototype.getHeight = function() {
-  // TODO:
-  return this._videoSlot.clientHeight;
+  return this._el.clientHeight;
 }
 Player.prototype.destroy = function() {
   // TODO: destroy
