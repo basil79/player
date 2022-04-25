@@ -42,6 +42,9 @@ const Player = function(el, options = {}, callback) {
   this._slot = null;
   this._videoSlot = null;
 
+  this._resizer = null;
+  this._ads = null;
+
   // Play promise
   this._playPromise = null;
 
@@ -157,6 +160,7 @@ const Player = function(el, options = {}, callback) {
     PlayerVideoComplete: 'PlayerVideoComplete',
     PlayerUserActive: 'PlayerUserActive',
     PlayerUserInactive: 'PlayerUserInactive',
+    PlayerResize: 'PlayerResize',
     PlayerError: 'PlayerError'
   }
 
@@ -221,6 +225,15 @@ Player.prototype.createVideoSlot = function() {
   // Append video slot
   this._slot.appendChild(this._videoSlot);
 
+  // Create resizer
+  this._resizer = document.createElement('iframe');
+  this._resizer.classList.add('resizer');
+  this._resizer.setAttribute('allowtransparency', true);
+
+  this._slot.appendChild(this._resizer);
+
+  this._resizer.contentWindow.onresize = this.onResize.bind(this);
+
   // Create overlay
   this.createOverlay();
   // Set source
@@ -271,7 +284,7 @@ Player.prototype.createAdContainer = function() {
   this._slot.appendChild(adContainer);
 
   // Initialize ads
-  const ads = new Ads(this, adContainer, this._options.ads);
+  this._ads = new Ads(this, adContainer, this._options.ads);
 
 }
 Player.prototype.userActive = function(isActive) {
@@ -480,6 +493,17 @@ Player.prototype.createOverlay = function() {
   }
 
   this._el.appendChild(overlay);
+}
+Player.prototype.onResize = function() {
+  this._ads && this._ads.resizeAd(this._videoSlot.clientWidth, this._videoSlot.clientHeight);
+  this.onPlayerResize();
+}
+Player.prototype.onPlayerResize = function() {
+  if(this.EVENTS.PlayerResize in this._eventCallbacks) {
+    if(typeof this._eventCallbacks[this.EVENTS.PlayerResize] === 'function') {
+      this._eventCallbacks[this.EVENTS.PlayerResize]();
+    }
+  }
 }
 Player.prototype.onUserActive = function() {
   this.onPlayerUserActive();
