@@ -8,7 +8,7 @@ const Ads = function(player, adContainer, options) {
   this._player = player;
   this._adContainer = adContainer;
   this._adsManager = null;
-  this._options = {
+  this._options = Object.assign({
     desktop: {
       inView: {
         vastUrl: null,
@@ -38,9 +38,7 @@ const Ads = function(player, adContainer, options) {
     usp: '', // US Privacy
     schain: null, // Supply Chain
     customMacros: []
-  };
-
-  Object.assign(this._options, options);
+  }, options);
 
   this.lastAdHasError = false;
   this.lastAdErrorRuntime = 0;
