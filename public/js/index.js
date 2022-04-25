@@ -23,7 +23,6 @@
       desktop: {
         inView: {
           vastUrl: 'https://v.adserve.tv/pg/vast-vpaid.xml',
-          //vastUrl: 'https://raw.githubusercontent.com/InteractiveAdvertisingBureau/VAST_Samples/master/VAST%204.0%20Samples/Inline_Simple.xml',
           interval: 5000, // Ad request interval after AdImpression
           retryInterval: 10000 // Ad request retry interval after AdError
         },
@@ -103,7 +102,21 @@
     aspectRatio: '1:1',
     title: 'Title',
     controls: false,
-    loop: true
+    loop: true,
+    ads: {
+      desktop: {
+        inView: {
+          vastUrl: 'https://v.adserve.tv/rama/vast.xml',
+          interval: 15000, // Ad request interval after AdImpression
+          retryInterval: 10000 // Ad request retry interval after AdError
+        },
+        notInView: {
+          vastUrl: 'https://raw.githubusercontent.com/InteractiveAdvertisingBureau/VAST_Samples/master/VAST%204.0%20Samples/Inline_Simple.xml',
+          interval: 15000,
+          retryInterval: 10000
+        },
+      },
+    }
   });
   player3.addEventListener('PlayerReady', function() {
     // Play

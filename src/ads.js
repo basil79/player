@@ -1,104 +1,63 @@
-import {addHandler as initTimeBus} from './time-bus';
+import * as timeBus from './time-bus';
 import {getRunTime, millisecondsToSeconds} from './utils';
 import {IS_MOBILE_AND_TABLET} from './browser';
 import {AdsManager} from 'ads-manager';
 
-let lastAdHasError = false;
-let lastAdErrorRuntime = 0;
-let lastAdRequestRuntime = 0;
-let lastAdCompleteRuntime = 0;
-let isAdPlaying = false;
+const Ads = function(player, adContainer, options) {
 
-// TODO:
-let instance = null; // player instance
-
-let adContainer = null;
-let adsManager = null;
-let options = {
-  desktop: {
-    inView: {
-      vastUrl: null,
-      interval: 5000, // Ad request interval after AdImpression
-      retryInterval: 10000 // Ad request retry interval after AdError
+  this._player = player;
+  this._adContainer = adContainer;
+  this._adsManager = null;
+  this._options = {
+    desktop: {
+      inView: {
+        vastUrl: null,
+        interval: 5000, // Ad request interval after AdImpression
+        retryInterval: 10000 // Ad request retry interval after AdError
+      },
+      notInView: {
+        vastUrl: null,
+        interval: 15000,
+        retryInterval: 10000
+      }
     },
-    notInView: {
-      vastUrl: null,
-      interval: 15000,
-      retryInterval: 10000
-    }
-  },
-  mobile: {
-    inView: {
-      vastUrl: null,
-      interval: 5000, // Ad request interval after AdImpression
-      retryInterval: 10000 // Ad request retry interval after AdError
+    mobile: {
+      inView: {
+        vastUrl: null,
+        interval: 5000, // Ad request interval after AdImpression
+        retryInterval: 10000 // Ad request retry interval after AdError
+      },
+      notInView: {
+        vastUrl: null,
+        interval: 15000,
+        retryInterval: 10000
+      },
     },
-    notInView: {
-      vastUrl: null,
-      interval: 15000,
-      retryInterval: 10000
-    },
-  },
-  gdpr: false, // GDPR
-  consent: '', // GDPR Consent
-  usp: '', // US Privacy
-  schain: null, // Supply Chain
-  customMacros: []
-};
+    gdpr: false, // GDPR
+    consent: '', // GDPR Consent
+    usp: '', // US Privacy
+    schain: null, // Supply Chain
+    customMacros: []
+  };
 
-function getInViewVastUrl() {
-  return IS_MOBILE_AND_TABLET
-    ? options.mobile.inView.vastUrl
-    : options.desktop.inView.vastUrl;
+  Object.assign(this._options, options);
+
+  this.lastAdHasError = false;
+  this.lastAdErrorRuntime = 0;
+  this.lastAdRequestRuntime = 0;
+  this.lastAdCompleteRuntime = 0;
+  this.isAdPlaying = false;
+
+  if(this._adContainer) {
+    // Initialize ads manager
+    this.initAdsManager();
+  }
 }
-
-function getNotInViewVastUrl() {
-  return IS_MOBILE_AND_TABLET
-    ? options.mobile.notInView.vastUrl
-    : options.desktop.notInView.vastUrl;
-}
-
-function getVastUrl() {
-  return instance.visible()
-    ? getInViewVastUrl()
-    : getNotInViewVastUrl();
-}
-
-function getInViewInterval() {
-  return IS_MOBILE_AND_TABLET
-    ? options.mobile.inView.interval
-    : options.desktop.inView.interval;
-}
-
-function getNotInViewInterval() {
-  return IS_MOBILE_AND_TABLET
-    ? options.mobile.notInView.interval
-    : options.desktop.notInView.interval;
-}
-
-function getInViewRetryInterval() {
-  return IS_MOBILE_AND_TABLET
-    ? options.mobile.inView.retryInterval
-    : options.desktop.inView.retryInterval;
-}
-
-function getNotInViewRetryInterval() {
-  return IS_MOBILE_AND_TABLET
-    ? options.mobile.notInView.retryInterval
-    : options.desktop.notInView.retryInterval;
-}
-
-function getRetryInterval() {
-  return instance.visible()
-    ? millisecondsToSeconds(getInViewRetryInterval())
-    : millisecondsToSeconds(getNotInViewRetryInterval());
-}
-
-function getInterval() {
-  if(lastAdHasError) {
+Ads.prototype.getInterval = function() {
+  if(this.lastAdHasError) {
     // Retry ad interval
-    const retryAdInterval = getRetryInterval() * 1000;
-    const diff = lastAdErrorRuntime - lastAdRequestRuntime;
+    const retryAdInterval = this.getRetryInterval() * 1000;
+    const diff = this.lastAdErrorRuntime - this.lastAdRequestRuntime;
     let newRetryAdInterval = 0;
     if(diff < retryAdInterval) {
       newRetryAdInterval = retryAdInterval - diff;
@@ -106,167 +65,197 @@ function getInterval() {
     return millisecondsToSeconds(newRetryAdInterval);
   }
   // Ad interval
-  return instance.visible()
-    ? millisecondsToSeconds(getInViewInterval())
-    : millisecondsToSeconds(getNotInViewInterval());
+  return this._player.visible()
+    ? millisecondsToSeconds(this.getInViewInterval())
+    : millisecondsToSeconds(this.getNotInViewInterval());
 }
-
-function playAd() {
-  if(adsManager) {
-    isAdPlaying = true;
-    lastAdRequestRuntime = getRunTime();
-    adsManager.requestAds(getVastUrl());
-  }
+Ads.prototype.getRetryInterval = function() {
+  return this._player.visible()
+    ? millisecondsToSeconds(this.getInViewRetryInterval())
+    : millisecondsToSeconds(this.getNotInViewRetryInterval());
 }
+// TODO:
+Ads.prototype.getInViewInterval = function() {
+  return IS_MOBILE_AND_TABLET
+    ? this._options.mobile.inView.interval
+    : this._options.desktop.inView.interval;
+}
+Ads.prototype.getNotInViewInterval = function() {
+  return IS_MOBILE_AND_TABLET
+    ? this._options.mobile.notInView.interval
+    : this._options.desktop.notInView.interval;
+}
+Ads.prototype.getInViewRetryInterval = function() {
+  return IS_MOBILE_AND_TABLET
+    ? this._options.mobile.inView.retryInterval
+    : this._options.desktop.inView.retryInterval;
+}
+Ads.prototype.getNotInViewRetryInterval = function() {
+  return IS_MOBILE_AND_TABLET
+    ? this._options.mobile.notInView.retryInterval
+    : this._options.desktop.notInView.retryInterval;
+}
+Ads.prototype.getInViewVastUrl = function() {
+  return IS_MOBILE_AND_TABLET
+    ? this._options.mobile.inView.vastUrl
+    : this._options.desktop.inView.vastUrl;
+}
+Ads.prototype.getNotInViewVastUrl = function() {
+  return IS_MOBILE_AND_TABLET
+    ? this._options.mobile.notInView.vastUrl
+    : this._options.desktop.notInView.vastUrl;
+}
+Ads.prototype.getVastUrl = function() {
+  return this._player.visible()
+    ? this.getInViewVastUrl()
+    : this.getNotInViewVastUrl();
+}
+Ads.prototype.initAdsManager = function() {
+  this._adsManager = new AdsManager(this._adContainer);
+  console.log('AdsManager version is', this._adsManager.getVersion());
 
-function checkIfPlayAds() {
+  const handleAdError = (adError) => {
+    console.log('AdError', adError);
+
+    this.lastAdHasError = true;
+    this.isAdPlaying = false;
+    this.lastAdErrorRuntime = getRunTime();
+    this.lastAdCompleteRuntime = this.lastAdErrorRuntime;
+
+    if(this._adsManager) {
+      this._adsManager.destroy();
+    }
+
+    this._player._el.classList.remove('ads');
+    // If player paused, then play
+    if(this._player.paused()) {
+      this._player.play();
+    }
+  };
+
+  const handleAdStopped = () => {
+    // Resume player
+    this._player._el.classList.remove('ads');
+    if(!this._player.ended()) {
+      this._player.play();
+    }
+  };
+
+  // Subscribe for events
+  this._adsManager.addEventListener('AdError', handleAdError);
+  this._adsManager.addEventListener('AdsManagerLoaded', () => {
+    console.log('AdsManagerLoaded', this._player._videoSlot.clientWidth, this._player._videoSlot.clientHeight);
+    const width = this._player._videoSlot.clientWidth;
+    const height = this._player._videoSlot.clientHeight;
+    // TODO:
+    const viewMode = 'normal'; // fullscreen
+
+    try {
+      this._adsManager.init(width, height, viewMode);
+    } catch (adError) {
+      // Play the video without ads, if an error occurs
+      console.log('AdsManager could not initialize ad');
+      handleAdError(adError);
+    }
+
+  });
+  this._adsManager.addEventListener('AdLoaded', (adEvent) => {
+    console.log('AdLoaded');
+    if(adEvent.type === 'linear') {
+      try {
+        this._adsManager.start();
+      } catch (adError) {
+        // Play the video without ads, if an error occurs
+        console.log('AdsManager could not be started');
+        handleAdError(adError);
+      }
+    } else {
+      console.log('AdsManager > AdLoaded > ad is not linear');
+    }
+  });
+  this._adsManager.addEventListener('AdStarted', () => {
+    console.log('AdStarted');
+
+    // Pause player
+    this._player._el.classList.add('ads');
+    if(!this._player.paused()) {
+      this._player.pause();
+    }
+
+  });
+  this._adsManager.addEventListener('AdDurationChange', () => {
+    console.log('AdDurationChange', this._adsManager.getDuration());
+  });
+  this._adsManager.addEventListener('AdSizeChange', () => {
+    console.log('AdSizeChange');
+  });
+  this._adsManager.addEventListener('AdVideoStart', () => {
+    console.log('AdVideoStart');
+  });
+  this._adsManager.addEventListener('AdImpression', () => {
+    console.log('AdImpression');
+  });
+  this._adsManager.addEventListener('AdVideoFirstQuartile', () => {
+    console.log('AdVideoFirstQuartile');
+  });
+  this._adsManager.addEventListener('AdVideoMidpoint', () => {
+    console.log('AdVideoMidpoint');
+  });
+  this._adsManager.addEventListener('AdVideoThirdQuartile', () => {
+    console.log('AdVideoThirdQuartile');
+  });
+  this._adsManager.addEventListener('AdPaused', () => {
+    console.log('AdPaused');
+  });
+  this._adsManager.addEventListener('AdPlaying', () => {
+    console.log('AdPlaying');
+  });
+  this._adsManager.addEventListener('AdVideoComplete', () => {
+    console.log('AdVideoComplete');
+  });
+  this._adsManager.addEventListener('AdStopped', handleAdStopped);
+  this._adsManager.addEventListener('AdSkipped', handleAdStopped);
+  this._adsManager.addEventListener('AdClickThru', (url, id) => {
+    console.log('AdClickThru', url);
+  });
+  this._adsManager.addEventListener('AllAdsCompleted', () => {
+    console.log('AllAdsCompleted');
+    this.lastAdHasError = false;
+    this.isAdPlaying = false;
+    this.lastAdCompleteRuntime = getRunTime();
+
+    // TODO:
+
+  });
+
+
+  // Initialize time bus for intervals
+  timeBus.addHandler(this.checkIfPlayAd.bind(this));
+}
+Ads.prototype.checkIfPlayAd = function() {
 
   /*
-  if(lastAdCompleteRuntime === 0 && !instance.paused()) {
+  if(this.lastAdCompleteRuntime === 0 && !this._player.paused()) {
     console.log('pre roll');
-    playAd();
+    this.playAd();
   }
    */
 
-  if(getRunTime() - lastAdCompleteRuntime >= getInterval() * 1000 && !isAdPlaying && !instance.ended() && !instance.paused()) {
-    console.log(getInterval() * 1000);
-    playAd();
+  if(getRunTime() - this.lastAdCompleteRuntime >= this.getInterval() * 1000
+    && !this.isAdPlaying
+    && !this._player.ended()
+    && !this._player.paused()) {
+    this.playAd();
   }
 
   return;
 }
-
-function initAds(playerInstance, givenAdContainer, givenOptions) {
-
-  // TODO:
-  instance = playerInstance; // Player instance
-  adContainer = givenAdContainer;
-  Object.assign(options, givenOptions);
-
-  // TODO:
-  if(adContainer) {
-
-    adsManager = new AdsManager(adContainer);
-    console.log('AdsManager version is', adsManager.getVersion());
-
-    const handleAdError = (adError) => {
-      console.log('AdError', adError);
-
-      lastAdHasError = true;
-      isAdPlaying = false;
-      lastAdErrorRuntime = getRunTime();
-      lastAdCompleteRuntime = lastAdErrorRuntime;
-
-      if(adsManager) {
-        adsManager.destroy();
-      }
-      // If player paused, then play
-      if(instance.paused()) {
-        instance.play();
-      }
-    };
-    // Subscribe for events
-    adsManager.addEventListener('AdError', handleAdError);
-    adsManager.addEventListener('AdsManagerLoaded', function() {
-      console.log('AdsManagerLoaded', instance._videoSlot.clientWidth, instance._videoSlot.clientHeight);
-      const width = instance._videoSlot.clientWidth;
-      const height = instance._videoSlot.clientHeight;
-      const viewMode = 'normal'; // fullscreen
-
-      try {
-        adsManager.init(width, height, viewMode);
-      } catch (adError) {
-        // Play the video without ads, if an error occurs
-        console.log('AdsManager could not initialize ad');
-        handleAdError(adError);
-      }
-
-    });
-    adsManager.addEventListener('AdLoaded', function(adEvent) {
-      console.log('AdLoaded');
-      if(adEvent.type === 'linear') {
-        try {
-          adsManager.start();
-        } catch (adError) {
-          // Play the video without ads, if an error occurs
-          console.log('AdsManager could not be started');
-          handleAdError(adError);
-        }
-      } else {
-        console.log('AdsManager > AdLoaded > ad is not linear');
-      }
-    });
-    adsManager.addEventListener('AdStarted', function() {
-      console.log('AdStarted');
-
-      // Pause player
-      instance._el.classList.add('ads');
-      if(!instance.paused()) {
-        instance.pause();
-      }
-
-    });
-    adsManager.addEventListener('AdDurationChange', function() {
-      console.log('AdDurationChange', adsManager.getDuration());
-    });
-    adsManager.addEventListener('AdSizeChange', function() {
-      console.log('AdSizeChange');
-    });
-    adsManager.addEventListener('AdVideoStart', function() {
-      console.log('AdVideoStart');
-    });
-    adsManager.addEventListener('AdImpression', function() {
-      console.log('AdImpression');
-    });
-    adsManager.addEventListener('AdVideoFirstQuartile', function() {
-      console.log('AdVideoFirstQuartile');
-    });
-    adsManager.addEventListener('AdVideoMidpoint', function() {
-      console.log('AdVideoMidpoint');
-    });
-    adsManager.addEventListener('AdVideoThirdQuartile', function() {
-      console.log('AdVideoThirdQuartile');
-    });
-    adsManager.addEventListener('AdPaused', function() {
-      console.log('AdPaused');
-    });
-    adsManager.addEventListener('AdPlaying', function() {
-      console.log('AdPlaying');
-    });
-    adsManager.addEventListener('AdVideoComplete', function () {
-      console.log('AdVideoComplete');
-    });
-    adsManager.addEventListener('AdStopped', function () {
-      console.log('AdStopped');
-    });
-    adsManager.addEventListener('AdSkipped', function() {
-      console.log('AdSkipped');
-    });
-    adsManager.addEventListener('AdClickThru', function(url, id) {
-      console.log('AdClickThru', url);
-    });
-    adsManager.addEventListener('AllAdsCompleted', function () {
-      console.log('AllAdsCompleted');
-      lastAdHasError = false;
-      isAdPlaying = false;
-      lastAdCompleteRuntime = getRunTime();
-
-      // Resume player
-      instance._el.classList.remove('ads');
-      if(!instance.ended()) {
-        instance.play();
-      }
-
-    });
-
-
-    // Initialize time bus
-    initTimeBus(checkIfPlayAds);
-
+Ads.prototype.playAd = function() {
+  if(this._adsManager) {
+    this.isAdPlaying = true;
+    this.lastAdRequestRuntime = getRunTime();
+    this._adsManager.requestAds(this.getVastUrl());
   }
-
 }
 
-export {
-  initAds
-}
+export default Ads;

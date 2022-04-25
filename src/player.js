@@ -26,7 +26,7 @@ import {
 } from './controls';
 import * as browser from './browser';
 import './css/styles.css';
-import {initAds} from './ads';
+import Ads from './ads';
 
 const Player = function(el, options = {}, callback) {
 
@@ -274,7 +274,8 @@ Player.prototype.createAdContainer = function() {
   this._slot.appendChild(adContainer);
 
   // Initialize ads
-  initAds(this, adContainer, this._options.ads);
+  const ads = new Ads(this, adContainer, this._options.ads);
+
 }
 Player.prototype.userActive = function(isActive) {
   if(isActive === undefined) {
