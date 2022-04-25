@@ -1,6 +1,6 @@
 /*!
  * player v1.0.1 development
- * Updated : 2022-04-24
+ * Updated : 2022-04-25
  */
 /*
  * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
