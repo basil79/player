@@ -99,7 +99,7 @@ const Player = function(el, options = {}, callback) {
   };
 
   // Options
-  this._options = {
+  this._options = Object.assign({
     width: 'auto',
     height: 'auto',
     aspectRatio: '16:9', // '16:9', '9:16', '4:3', '1:1'
@@ -119,10 +119,7 @@ const Player = function(el, options = {}, callback) {
     stickyFloating: false,
     textTracks: null, // closed captions, subtitles
     ads: null // ads
-  };
-
-  // Assign options
-  Object.assign(this._options, options);
+  }, options);
 
   // Set attributes
   // Muted
