@@ -255,5 +255,8 @@ Ads.prototype.playAd = function() {
     this._adsManager.requestAds(this.getVastUrl());
   }
 }
+Ads.prototype.resizeAd = function(width, height, viewMode) {
+  this._adsManager && this._adsManager.resize(width, height);
+}
 
 export default Ads;
