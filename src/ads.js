@@ -42,7 +42,8 @@ let options = {
   gdpr: false, // GDPR
   consent: '', // GDPR Consent
   usp: '', // US Privacy
-  schain: null // Supply Chain
+  schain: null, // Supply Chain
+  customMacros: []
 };
 
 function getInViewVastUrl() {

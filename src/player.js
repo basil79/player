@@ -66,8 +66,8 @@ const Player = function(el, options = {}, callback) {
 
   // Attributes
   this._attributes = {
-    sessionId: generateSessionId(), // TODO
-    isReady: false, // TODO: change to true when ready
+    sessionId: generateSessionId(),
+    isReady: false,
     userActive: false,
     userActivity: false,
     aspectRatioPercentage: null,
@@ -530,10 +530,10 @@ Player.prototype.onPlayerReady = function() {
     }
   }
 }
-Player.prototype.onPlayerVisibilityChange = function(visiblity) {
+Player.prototype.onPlayerVisibilityChange = function(visibility) {
   if(this.EVENTS.PlayerVisibilityChange in this._eventCallbacks) {
     if(typeof this._eventCallbacks[this.EVENTS.PlayerVisibilityChange] === 'function') {
-      this._eventCallbacks[this.EVENTS.PlayerVisibilityChange](visiblity);
+      this._eventCallbacks[this.EVENTS.PlayerVisibilityChange](visibility);
     }
   }
 }
@@ -634,13 +634,10 @@ Player.prototype.setSrc = function(source) {
     });
 
     this._videoSlot.addEventListener('waiting', () => {
-      //console.log('waiting - add waiting', this.getCurrentTime());
       this._el.classList.add('waiting');
       this._attributes.waitingTime = this.getCurrentTime();
       const timeUpdateListener = () => {
-        //console.log('timeupdate - waiting', this._attributes.waitingTime, this.getCurrentTime());
         if(this._attributes.waitingTime !== this.getCurrentTime()) {
-          //console.log('timeupdate - remove waiting');
           this._el.classList.remove('waiting');
           this._videoSlot.removeEventListener('timeupdate', timeUpdateListener);
         }
@@ -688,8 +685,7 @@ Player.prototype.setSrc = function(source) {
         const loadStartPercentage = bf.start(range) / event.target.duration;
         const loadEndPercentage = bf.end(range) / event.target.duration;
         const loadPercentage = loadEndPercentage - loadStartPercentage;
-
-        //console.log('loading...', loadPercentage);
+        // Update timeline buffer
         this._timeline && this._timeline.updateBuffer(loadPercentage);
       } catch (e) {}
     });
@@ -881,7 +877,6 @@ Player.prototype.getVolume = function() {
 }
 Player.prototype.setVolume = function(value) {
   if(this._videoSlot) {
-    console.log('set volume >', value, this._videoSlot.volume);
     if (value) {
       this._videoSlot.muted = false;
       // Set attributes
@@ -893,7 +888,6 @@ Player.prototype.setVolume = function(value) {
     }
     const isVolumeChanged = value !== this._videoSlot.volume;
     if (isVolumeChanged) {
-      console.log('set volume > volume changed');
       this._videoSlot.volume = value;
       this._attributes.volume = value;
     }
