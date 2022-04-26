@@ -87,6 +87,10 @@ function getRunTime() {
   return new Date().getTime() - startTime;
 }
 
+function getCacheBuster() {
+  return Math.floor(Math.random() * 1000000);
+}
+
 function millisecondsToSeconds(milliseconds) {
   return Math.floor(milliseconds / 1000);
 }
@@ -290,6 +294,7 @@ export {
   toHHMMSS,
   getBuffer,
   getRunTime,
+  getCacheBuster,
   millisecondsToSeconds,
   isFullscreen,
   requestFullscreen,

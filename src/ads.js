@@ -1,6 +1,6 @@
 import * as timeBus from './time-bus';
-import {getRunTime, millisecondsToSeconds} from './utils';
-import {IS_MOBILE_AND_TABLET} from './browser';
+import {getCacheBuster, getRunTime, millisecondsToSeconds} from './utils';
+import {IS_IPHONE, IS_MOBILE_AND_TABLET} from './browser';
 import {AdsManager} from 'ads-manager';
 
 const Ads = function(player, adContainer, options) {
@@ -238,6 +238,9 @@ Ads.prototype.checkIfPlayAd = function() {
     this.playAd();
   }
    */
+  if(IS_IPHONE && this._player.fullscreen()) {
+    return;
+  }
 
   if(getRunTime() - this.lastAdCompleteRuntime >= this.getInterval() * 1000
     && !this.isAdPlaying
@@ -255,6 +258,9 @@ Ads.prototype.playAd = function() {
   if(this._adsManager) {
     this.isAdPlaying = true;
     this.lastAdRequestRuntime = getRunTime();
+
+    // Request ad
+    console.log('cache buster', getCacheBuster());
     this._adsManager.requestAds(this.getVastUrl());
   }
 }
