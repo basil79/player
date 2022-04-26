@@ -947,7 +947,7 @@ Player.prototype.hidden = function() {
   return this._attributes.hidden;
 }
 Player.prototype.fullscreen = function() {
-  return this._attributes.fullscreen;
+  return isFullscreen(document); //this._attributes.fullscreen;
 }
 Player.prototype.requestFullscreen = function() {
   if(this._videoSlot && this._attributes.src && !isFullscreen(document)) {
