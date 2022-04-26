@@ -1,11 +1,12 @@
 import * as timeBus from './time-bus';
 import {
   getCacheBuster,
+  getUrl,
   getRunTime,
   getTimestamp,
   millisecondsToSeconds,
   replaceMacrosValues,
-  serializeSupplyChain
+  serializeSupplyChain, getHostname
 } from './utils';
 import {IS_IPHONE, IS_MOBILE_AND_TABLET} from './browser';
 import {AdsManager} from 'ads-manager';
@@ -270,8 +271,8 @@ Ads.prototype.getMacros = function() {
     'TIMESTAMP': getTimestamp(), // UNIX timestamp
     'HEIGHT': this._player._videoSlot.clientHeight,
     'WIDTH': this._player._videoSlot.clientWidth,
-    'DOMAIN': '', // TODO:
-    'URL': '', // TODO:
+    'URL': getUrl(), // url
+    'DOMAIN': getHostname(getUrl()), // domain aka hostname
     'USER_AGENT': encodeURIComponent(navigator.userAgent),
     'DEVICE': IS_MOBILE_AND_TABLET ? 2 : 1, // device
     'DNT': (navigator.doNotTrack == 'yes' || navigator.doNotTrack == '1' || navigator.msDoNotTrack == '1') ? 1 : 0, // do not track
