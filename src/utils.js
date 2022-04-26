@@ -91,6 +91,10 @@ function getCacheBuster() {
   return Math.floor(Math.random() * 1000000);
 }
 
+function getTimestamp() {
+  return Date.now();
+}
+
 function millisecondsToSeconds(milliseconds) {
   return Math.floor(milliseconds / 1000);
 }
@@ -284,6 +288,34 @@ function getPointerPosition(el, event) {
   return position;
 }
 
+function replaceMacrosValues(url, macros) {
+  let replacedMacrosUrl = url;
+  for (const key in macros) {
+    const value = macros[key];
+    // this will match [${key}] and %%${key}%% and replace it
+    replacedMacrosUrl = replacedMacrosUrl.replace(
+      new RegExp(`(?:\\[|%%)(${key})(?:\\]|%%)`, 'g'),
+      value
+    );
+  }
+  return replacedMacrosUrl;
+}
+
+function serializeSupplyChain(schain) {
+  if(!schain || typeof schain !== 'object'
+    || !schain.hasOwnProperty('ver')
+    || !schain.hasOwnProperty('complete')
+    || !schain.hasOwnProperty('nodes')) {
+    return '';
+  }
+  const keys = 'asi sid hp rid name domain'.split(' ');
+  return schain.ver + ',' + schain.complete + '|' + schain.nodes.map((function (item) {
+    return keys.map((function (key) {
+      return item[key] ? encodeURIComponent(item[key]) : ''
+    })).join(',');
+  })).join('|');
+}
+
 export {
   observeVisibility,
   visible,
@@ -295,6 +327,7 @@ export {
   getBuffer,
   getRunTime,
   getCacheBuster,
+  getTimestamp,
   millisecondsToSeconds,
   isFullscreen,
   requestFullscreen,
@@ -304,5 +337,7 @@ export {
   generateSessionId,
   getBoundingClientRect,
   findPosition,
-  getPointerPosition
+  getPointerPosition,
+  replaceMacrosValues,
+  serializeSupplyChain
 }

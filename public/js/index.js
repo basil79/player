@@ -106,12 +106,12 @@
     ads: {
       desktop: {
         inView: {
-          vastUrl: 'https://v.adserve.tv/rama/vast.xml',
+          vastUrl: 'https://v.adserve.tv/rama/vast.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]&ua=[USER_AGENT]&dnt=[DNT]&dev=[DEVICE]',
           interval: 15000, // Ad request interval after AdImpression
           retryInterval: 10000 // Ad request retry interval after AdError
         },
         notInView: {
-          vastUrl: 'https://raw.githubusercontent.com/InteractiveAdvertisingBureau/VAST_Samples/master/VAST%204.0%20Samples/Inline_Simple.xml',
+          vastUrl: 'https://raw.githubusercontent.com/InteractiveAdvertisingBureau/VAST_Samples/master/VAST%204.0%20Samples/Inline_Simple.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]',
           interval: 15000,
           retryInterval: 10000
         },
@@ -128,6 +128,15 @@
           retryInterval: 10000
         },
       },
+      schain: { // Supply Chain Object
+        ver: '1.0',
+        complete: 1,
+        nodes: [{
+          asi: 'adserve.tv',
+          hp: 1,
+          sid: ''
+        }]
+      }
     }
   });
   player3.addEventListener('PlayerReady', function() {

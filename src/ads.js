@@ -1,5 +1,12 @@
 import * as timeBus from './time-bus';
-import {getCacheBuster, getRunTime, millisecondsToSeconds} from './utils';
+import {
+  getCacheBuster,
+  getRunTime,
+  getTimestamp,
+  millisecondsToSeconds,
+  replaceMacrosValues,
+  serializeSupplyChain
+} from './utils';
 import {IS_IPHONE, IS_MOBILE_AND_TABLET} from './browser';
 import {AdsManager} from 'ads-manager';
 
@@ -254,14 +261,37 @@ Ads.prototype.checkIfPlayAd = function() {
 Ads.prototype.getViewMode = function() {
   return this._player.fullscreen() ? 'fullscreen' : 'normal'
 }
+Ads.prototype.getSChain = function() {
+  return serializeSupplyChain(this._options.schain);
+}
+Ads.prototype.getMacros = function() {
+  return {
+    'CACHEBUSTER': getCacheBuster(), // random
+    'TIMESTAMP': getTimestamp(), // UNIX timestamp
+    'HEIGHT': this._player._videoSlot.clientHeight,
+    'WIDTH': this._player._videoSlot.clientWidth,
+    'DOMAIN': '', // TODO:
+    'URL': '', // TODO:
+    'USER_AGENT': encodeURIComponent(navigator.userAgent),
+    'DEVICE': IS_MOBILE_AND_TABLET ? 2 : 1, // device
+    'DNT': (navigator.doNotTrack == 'yes' || navigator.doNotTrack == '1' || navigator.msDoNotTrack == '1') ? 1 : 0, // do not track
+    'UTM': '', // TODO: utm params
+    'DURATION': this._player.getDuration(), // video duration length in seconds
+    'IS_VISIBLE': this._player.visible() ? 1 : 0, // is visible
+    'GDPR': this._options.gdpr, // TODO: A flag to indicate user is in the European Union and consent applies
+    'CONSENT': this._options.consent, // TODO: A consent string passed from various Consent Management Platforms (CMP's). Also accept numeric value for CTV consent.
+    'US_PRIVACY': this._options.usp, // A mandatory string for all publishers in which they must pass the privacy consent for users from California
+    'SCHAIN': this.getSChain(), // supply chain object
+    'ABC': '', // TODO: AB test name
+  }
+}
 Ads.prototype.playAd = function() {
   if(this._adsManager) {
     this.isAdPlaying = true;
     this.lastAdRequestRuntime = getRunTime();
 
     // Request ad
-    console.log('cache buster', getCacheBuster());
-    this._adsManager.requestAds(this.getVastUrl());
+    this._adsManager.requestAds(replaceMacrosValues(this.getVastUrl(), this.getMacros()));
   }
 }
 Ads.prototype.resizeAd = function(width, height) {
