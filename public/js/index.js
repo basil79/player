@@ -22,7 +22,7 @@
     ads: {
       desktop: {
         inView: {
-          vastUrl: 'https://v.adserve.tv/pg/vast-vpaid.xml',
+          vastUrl: 'https://v.adserve.tv/pg/vast-vpaid.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]&ua=[USER_AGENT]&dnt=[DNT]&dev=[DEVICE]&domain=[DOMAIN]&url=[URL]',
           interval: 5000, // Ad request interval after AdImpression
           retryInterval: 10000 // Ad request retry interval after AdError
         },
@@ -106,7 +106,7 @@
     ads: {
       desktop: {
         inView: {
-          vastUrl: 'https://v.adserve.tv/rama/vast.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]&ua=[USER_AGENT]&dnt=[DNT]&dev=[DEVICE]',
+          vastUrl: 'https://v.adserve.tv/rama/vast.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]&ua=[USER_AGENT]&dnt=[DNT]&dev=[DEVICE]&domain=[DOMAIN]&url=[URL]',
           interval: 15000, // Ad request interval after AdImpression
           retryInterval: 10000 // Ad request retry interval after AdError
         },

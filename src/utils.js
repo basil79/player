@@ -316,6 +316,168 @@ function serializeSupplyChain(schain) {
   })).join('|');
 }
 
+function getUrl() {
+  const href = window.location.href;
+  const referrer = document.referrer;
+
+  // Detect if you inside iframe
+  if (window.parent != window) {
+    const win = window, doc = document;
+    let
+      ampUrl = null,
+      topAncestorOriginHostname = null,
+      topAncestorOrigin = null,
+      windowLocationAncestorOriginsHostnames = null,
+      windowLocationAncestorOrigins = null,
+      documentReferrerHostname = null,
+      documentReferrer = null,
+      windowTopLocationOrigin = null,
+      windowLocationOrigin = null,
+      windowTopLocationHostname = null,
+      windowLocationHostname = null,
+      windowTopLocationHref = null,
+      windowLocationHref = null;
+    const parents = [], parentLocationHref = [], parentHostnames = [];
+    let
+      topParentLocationHref = null,
+      domainMatchSource = null,
+      domainMatch = null,
+      //url = null,
+      topParentHostname = null,
+      iframeHeight = 0,
+      topIdxDomain = (iframeHeight = -1);
+
+    const getHostname = function(url) {
+      try {
+        return new URL(url).hostname;
+      } catch (e) {
+        const link = document.createElement('a');
+        link.href = url;
+        return link.hostname;
+      }
+    }
+
+    const getAmpUrl = function(url) {
+      const n = (url = url.replace('.cdn.ampproject.org', '')).lastIndexOf('-');
+      return 0 <= n ? ((url = url.substring(0, n) + '.' + url.substring(n + 1)), getHostname(url)) : null;
+    }
+
+    try {
+      windowLocationHref = win.location.href;
+    } catch (e) {}
+    try {
+      windowTopLocationHref = win.top.location.href;
+    } catch (e) {}
+    try {
+      windowLocationHostname = win.location.hostname;
+    } catch (e) {}
+    try {
+      windowTopLocationHostname = win.top.location.hostname;
+    } catch (e) {}
+    try {
+      windowLocationOrigin = win.location.origin;
+    } catch (e) {}
+    try {
+      windowTopLocationOrigin = win.top.location.origin;
+    } catch (e) {}
+    try {
+      documentReferrer = doc.referrer;
+      documentReferrerHostname = getHostname(documentReferrer);
+    } catch (e) {}
+
+    // Try to collect window.location.ancestorOrigins
+    // ancestorOrigins not support in FF
+    try {
+      windowLocationAncestorOrigins = [];
+      windowLocationAncestorOriginsHostnames = [];
+      for(let i = 0; i < win.location.ancestorOrigins.length; i++) {
+        const ancestorOrigin = win.location.ancestorOrigins[i];
+        windowLocationAncestorOrigins.push(ancestorOrigin);
+        const ancestorOriginHostname = getHostname(ancestorOrigin);
+        windowLocationAncestorOriginsHostnames.push(
+          ancestorOriginHostname
+        );
+        ancestorOrigin.endsWith('.cdn.ampproject.org') && (ampUrl = getAmpUrl(ancestorOrigin));
+      }
+    } catch (e) {}
+    // If window.location.ancestorOrigins was collected get the last ancestorOrigin from array and set topAncestorOrigin
+    windowLocationAncestorOrigins !== null && windowLocationAncestorOrigins.length > 0 && (topAncestorOrigin = windowLocationAncestorOrigins[windowLocationAncestorOrigins.length - 1]);
+    windowLocationAncestorOriginsHostnames !== null && windowLocationAncestorOriginsHostnames.length > 0 && (topAncestorOriginHostname = windowLocationAncestorOriginsHostnames[windowLocationAncestorOriginsHostnames.length - 1]);
+
+    try {
+      let currentWindow = win;
+      iframeHeight = 0;
+      do {
+        try {
+          parents.push(currentWindow);
+        } catch (e) {}
+        try {
+          parentLocationHref.push({
+            url: currentWindow.location.href,
+          });
+          topParentLocationHref = currentWindow.location.href;
+        } catch (e) {}
+        try {
+          parentHostnames.push({
+            url: currentWindow.location.hostname,
+          });
+          topParentHostname = currentWindow.location.hostname;
+          topIdxDomain = iframeHeight + 1;
+        } catch (e) {}
+        currentWindow = currentWindow.parent;
+        iframeHeight++;
+      } while (currentWindow !== win.top && currentWindow !== currentWindow.parent && 50 > iframeHeight);
+    } catch (e) {}
+
+    const getDomainMatchSource = function() {
+      if(topAncestorOriginHostname !== null && topAncestorOriginHostname !== '')
+        return {
+          origin: topAncestorOrigin,
+          hostname: topAncestorOriginHostname,
+        };
+      if(windowTopLocationHostname !== null && windowTopLocationHostname !== '')
+        return {
+          origin: windowTopLocationOrigin,
+          hostname: windowTopLocationHostname,
+        };
+      if(!(1 >= iframeHeight)) {
+        if(!(2 === iframeHeight || 2 >= topIdxDomain) && topParentHostname !== null && topParentHostname !== '')
+          return {
+            origin: topParentLocationHref,
+            hostname: topParentHostname,
+          };
+        if(documentReferrerHostname !== null && documentReferrerHostname !== '')
+          return {
+            origin: documentReferrer,
+            hostname: documentReferrerHostname,
+          };
+      }
+      return windowLocationHostname !== null && windowLocationHostname !== ''
+        ? {
+          origin: windowLocationHref,
+          hostname: windowLocationHostname
+        }
+        : {
+          origin: null,
+          hostname: null
+        };
+    }
+
+    domainMatch = getDomainMatchSource();
+    return domainMatch.origin != null ? domainMatch.origin : referrer;
+  } else {
+    return href;
+  }
+}
+
+function getHostname(url) {
+  try {
+    return new URL(url).hostname;
+  } catch(e) {
+    return null
+  }
+}
+
 export {
   observeVisibility,
   visible,
@@ -339,5 +501,7 @@ export {
   findPosition,
   getPointerPosition,
   replaceMacrosValues,
-  serializeSupplyChain
+  serializeSupplyChain,
+  getUrl,
+  getHostname
 }
