@@ -31,7 +31,7 @@ const Ads = function(player, adContainer, options) {
         vastUrl: null,
         interval: 15000,
         retryInterval: 10000
-      },
+      }
     },
     gdpr: false, // GDPR
     consent: '', // GDPR Consent
@@ -146,7 +146,8 @@ Ads.prototype.initAdsManager = function() {
     const width = this._player._videoSlot.clientWidth;
     const height = this._player._videoSlot.clientHeight;
     // TODO:
-    const viewMode = 'normal'; // fullscreen
+    const viewMode = this.getViewMode(); // fullscreen
+    console.log('init > viewMode', viewMode);
 
     try {
       this._adsManager.init(width, height, viewMode);
@@ -226,7 +227,6 @@ Ads.prototype.initAdsManager = function() {
 
   });
 
-
   // Initialize time bus for intervals
   timeBus.addHandler(this.checkIfPlayAd.bind(this));
 }
@@ -248,6 +248,9 @@ Ads.prototype.checkIfPlayAd = function() {
 
   return;
 }
+Ads.prototype.getViewMode = function() {
+  return this._player.fullscreen() ? 'fullscreen' : 'normal'
+}
 Ads.prototype.playAd = function() {
   if(this._adsManager) {
     this.isAdPlaying = true;
@@ -255,8 +258,9 @@ Ads.prototype.playAd = function() {
     this._adsManager.requestAds(this.getVastUrl());
   }
 }
-Ads.prototype.resizeAd = function(width, height, viewMode) {
-  this._adsManager && this._adsManager.resize(width, height);
+Ads.prototype.resizeAd = function(width, height) {
+  console.log('resize > viewMode', this.getViewMode());
+  this._adsManager && this._adsManager.resize(width, height, this.getViewMode());
 }
 
 export default Ads;
