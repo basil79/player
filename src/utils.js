@@ -309,11 +309,11 @@ function serializeSupplyChain(schain) {
     return '';
   }
   const keys = 'asi sid hp rid name domain'.split(' ');
-  return schain.ver + ',' + schain.complete + '|' + schain.nodes.map((function (item) {
+  return schain.ver + ',' + schain.complete + '!' + schain.nodes.map((function(item) {
     return keys.map((function (key) {
       return item[key] ? encodeURIComponent(item[key]) : ''
     })).join(',');
-  })).join('|');
+  })).join('!');
 }
 
 function getUrl() {
