@@ -41,9 +41,8 @@
           retryInterval: 10000
         },
       },
-      gdpr: false, // TODO: remove GDPR
-      consent: '', // TODO: remove GDPR Consent
-      usp : '', // TODO: remove US Privacy
+      gdpr: false, // if true check GDPR (EU)
+      ccpa: false, // if true check CCPA (US Privacy)
       schain: { // Supply Chain Object
         ver: '1.0',
         complete: 1,

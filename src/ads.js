@@ -41,9 +41,8 @@ const Ads = function(player, adContainer, options) {
         retryInterval: 10000
       }
     },
-    gdpr: false, // GDPR
-    consent: '', // GDPR Consent
-    usp: '', // US Privacy
+    gdpr: false, // if true check GDPR (EU)
+    ccpa: false, // if true check CCPA (US Privacy)
     schain: null, // Supply Chain
     customMacros: {} // Custom Macros
   }, options);
@@ -266,7 +265,6 @@ Ads.prototype.getSChain = function() {
   return serializeSupplyChain(this._options.schain);
 }
 Ads.prototype.populateCustomMacros = function(url) {
-
   if(this._options.customMacros) {
     Object.getOwnPropertyNames(this._options.customMacros).forEach((key) => {
       // Find pattern [key] in the url
@@ -276,7 +274,7 @@ Ads.prototype.populateCustomMacros = function(url) {
           // Get the value from customMacros by key, replace the url pattern with the value
           // and then put the value in customMacro[key] = value
           const isFunc = typeof this._options.customMacros[key] == 'function';
-          const value = isFunc ? this._options.customMacros[key]() : this._options.customMacros[key];
+          const value = encodeURIComponent(isFunc ? this._options.customMacros[key]() : this._options.customMacros[key]);
           url = url.replace(
             new RegExp(`(?:\\[|%%)(${key})(?:\\]|%%)`, 'g'),
             value
@@ -289,7 +287,6 @@ Ads.prototype.populateCustomMacros = function(url) {
       }
     });
   }
-
   return url;
 }
 Ads.prototype.getMacros = function() {
@@ -306,9 +303,9 @@ Ads.prototype.getMacros = function() {
     'UTM': '', // TODO: utm params
     'DURATION': this._player.getDuration(), // video duration length in seconds
     'IS_VISIBLE': this._player.visible() ? 1 : 0, // is visible
-    'GDPR': this._options.gdpr, // TODO: A flag to indicate user is in the European Union and consent applies
-    'CONSENT': this._options.consent, // TODO: A consent string passed from various Consent Management Platforms (CMP's). Also accept numeric value for CTV consent.
-    'US_PRIVACY': this._options.usp, // A mandatory string for all publishers in which they must pass the privacy consent for users from California
+    'GDPR': false, // this._options.gdpr, // GDPR - A flag to indicate user is in the European Union and consent applies
+    'GDPR_CONSENT': '', // this._options.consent, // GDPR_CONSENT - A consent string passed from various Consent Management Platforms (CMP's). Also accept numeric value for CTV consent.
+    'US_PRIVACY': '', // this._options.usp, // CCPA - A mandatory string for all publishers in which they must pass the privacy consent for users from California
     'SCHAIN': this.getSChain(), // supply chain object
     'ABC': '', // TODO: AB test name
   }
