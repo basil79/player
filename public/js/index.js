@@ -1,8 +1,5 @@
 (function() {
 
-
-  let adContainer = document.getElementById('ad-container');
-
   // player 1
   const player1 = new adserve.tv.Player(document.getElementById('player1'), {
     width: 'auto', // not required
@@ -18,13 +15,13 @@
     volume: 0, // video volume
     controls: true, // show controls
     textTracks: {},
-    stickyFloating: false, // TODO:
+    stickyFloating: false, // TODO: position, close button, margins
     ads: {
       desktop: {
         inView: {
-          vastUrl: 'https://v.adserve.tv/pg/vast-vpaid.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]&ua=[USER_AGENT]&dnt=[DNT]&dev=[DEVICE]&domain=[DOMAIN]&url=[URL]',
-          interval: 5000, // Ad request interval after AdImpression
-          retryInterval: 10000 // Ad request retry interval after AdError
+          vastUrl: 'https://v.adserve.tv/pg/vast-vpaid.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]&ua=[USER_AGENT]&dnt=[DNT]&dev=[DEVICE]&domain=[DOMAIN]&url=[URL]&cat=[CATEGORIES]&tags=[TAGS]',
+          interval: 5000, // ad request interval after AdImpression
+          retryInterval: 10000 // ad request retry interval after AdError
         },
         notInView: {
           vastUrl: 'https://v.adserve.tv/rama/vast.xml',
@@ -35,8 +32,8 @@
       mobile: {
         inView: {
           vastUrl: 'https://v.adserve.tv/rama/vast.xml',
-          interval: 5000, // Ad request interval after AdImpression
-          retryInterval: 10000 // Ad request retry interval after AdError
+          interval: 5000, // ad request interval after AdImpression
+          retryInterval: 10000 // ad request retry interval after AdError
         },
         notInView: {
           vastUrl: 'https://raw.githubusercontent.com/InteractiveAdvertisingBureau/VAST_Samples/master/VAST%204.0%20Samples/Inline_Simple.xml',
@@ -44,9 +41,9 @@
           retryInterval: 10000
         },
       },
-      gdpr: false, // GDPR
-      consent: '', // GDPR Consent
-      usp : '', // US Privacy
+      gdpr: false, // TODO: remove GDPR
+      consent: '', // TODO: remove GDPR Consent
+      usp : '', // TODO: remove US Privacy
       schain: { // Supply Chain Object
         ver: '1.0',
         complete: 1,
@@ -56,7 +53,20 @@
           sid: ''
         }]
       },
-      customMacros: []
+      customMacros: {
+        gptTargeting: function(key) {
+          if(window.googletag && googletag.apiReady) {
+            const data = googletag.pubads().getTargeting(key);
+            return data.length != 0 ? data.toString() : '';
+          } else {
+            return '';
+          }
+        },
+        'CATEGORIES': function() {
+          return this.gptTargeting('categories');
+        },
+        'TAGS': '1,2,3'
+      }
     },
     abTest: {} // AB Test
   }, function() {

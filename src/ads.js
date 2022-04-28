@@ -13,7 +13,7 @@ import {AdsManager} from 'ads-manager';
 
 const Ads = function(player, adContainer, options) {
 
-  this._player = player;
+  this._player = player; // TODO:
   this._adContainer = adContainer;
   this._adsManager = null;
   this._options = Object.assign({
@@ -45,7 +45,7 @@ const Ads = function(player, adContainer, options) {
     consent: '', // GDPR Consent
     usp: '', // US Privacy
     schain: null, // Supply Chain
-    customMacros: []
+    customMacros: {} // Custom Macros
   }, options);
 
   this.lastAdHasError = false;
@@ -265,6 +265,33 @@ Ads.prototype.getViewMode = function() {
 Ads.prototype.getSChain = function() {
   return serializeSupplyChain(this._options.schain);
 }
+Ads.prototype.populateCustomMacros = function(url) {
+
+  if(this._options.customMacros) {
+    Object.getOwnPropertyNames(this._options.customMacros).forEach((key) => {
+      // Find pattern [key] in the url
+      console.log('custom', key);
+      if(url.indexOf('[' + key + ']') != -1) {
+        try {
+          // Get the value from customMacros by key, replace the url pattern with the value
+          // and then put the value in customMacro[key] = value
+          const isFunc = typeof this._options.customMacros[key] == 'function';
+          const value = isFunc ? this._options.customMacros[key]() : this._options.customMacros[key];
+          url = url.replace(
+            new RegExp(`(?:\\[|%%)(${key})(?:\\]|%%)`, 'g'),
+            value
+          );
+          // Replace customMacros by key with value, if it was a function
+          if(isFunc) {
+            this._options.customMacros[key] = value;
+          }
+        } catch (e) {}
+      }
+    });
+  }
+
+  return url;
+}
 Ads.prototype.getMacros = function() {
   return {
     'CACHEBUSTER': getCacheBuster(), // random
@@ -292,7 +319,7 @@ Ads.prototype.playAd = function() {
     this.lastAdRequestRuntime = getRunTime();
 
     // Request ad
-    this._adsManager.requestAds(replaceMacrosValues(this.getVastUrl(), this.getMacros()));
+    this._adsManager.requestAds(this.populateCustomMacros(replaceMacrosValues(this.getVastUrl(), this.getMacros())));
   }
 }
 Ads.prototype.resizeAd = function(width, height) {
