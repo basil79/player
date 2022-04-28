@@ -9,6 +9,8 @@ import {
   serializeSupplyChain, getHostname
 } from './utils';
 import {IS_IPHONE, IS_MOBILE_AND_TABLET} from './browser';
+import * as gdpr from './gdpr';
+import * as ccpa from './ccpa';
 import {AdsManager} from 'ads-manager';
 
 const Ads = function(player, adContainer, options) {
@@ -52,6 +54,11 @@ const Ads = function(player, adContainer, options) {
   this.lastAdRequestRuntime = 0;
   this.lastAdCompleteRuntime = 0;
   this.isAdPlaying = false;
+
+  // GDPR
+  gdpr.lookupConsent();
+  // CCPA
+  ccpa.lookupConsent();
 
   if(this._adContainer) {
     // Initialize ads manager

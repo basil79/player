@@ -4,7 +4,7 @@ let triesLeft = 5;
 const cmpCallbacks = {};
 const uspVersion = 1;
 
-function initConsentString() {
+function lookupConsent() {
   return new Promise((res) => {
     consentString = '';
     if(!window.__uspapi && window !== window.top) {
@@ -50,9 +50,9 @@ function initConsentString() {
           data = event.data;
         }
 
-        if(data.__uspapiReturn) {
+        if(data && data.__uspapiReturn) {
           const r = data.__uspapiReturn;
-          if(cmpCallbacks.hasOwnProperty(r.callId)) {
+          if(r && cmpCallbacks.hasOwnProperty(r.callId)) {
             try {
               cmpCallbacks[r.callId](
                 r.returnValue,
@@ -69,16 +69,17 @@ function initConsentString() {
 
     if(typeof window.__uspapi !== 'function') {
       if(triesLeft-- > 0) {
-        window.setTimeout(initConsentString, 1200);
+        window.setTimeout(lookupConsent, 1200);
       } else {
         // There's no CMP on the page
         console.log('CCPA', 'There\'s no CMP on the page');
         // resolve
         res();
       }
+      return;
     }
 
-    window.__uspapi('getUSPData', uspVersion, function(uspData, success) {
+    window.__uspapi('getUSPData', uspVersion, (uspData, success) => {
       if(success) {
         consentString = uspData.uspString;
         console.log('CCPA', consentString);
@@ -91,7 +92,7 @@ function initConsentString() {
           // resolve
           res()
         } else {
-          window.setTimeout(initConsentString, 1200);
+          window.setTimeout(lookupConsent, 1200);
         }
       }
     });
@@ -111,7 +112,7 @@ function isConsentString() {
 }
 
 export {
-  initConsentString,
+  lookupConsent,
   getConsentString,
   isConsentString
 }
