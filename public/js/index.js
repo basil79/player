@@ -19,7 +19,7 @@
     ads: {
       desktop: {
         inView: {
-          vastUrl: 'https://v.adserve.tv/pg/vast-vpaid.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]&ua=[USER_AGENT]&dnt=[DNT]&dev=[DEVICE]&domain=[DOMAIN]&url=[URL]&cat=[CATEGORIES]&tags=[TAGS]',
+          vastUrl: 'https://v.adserve.tv/pg/vast-vpaid.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]&ua=[USER_AGENT]&dnt=[DNT]&dev=[DEVICE]&domain=[DOMAIN]&url=[URL]&cat=[CATEGORIES]&tags=[TAGS]&gdpr=[GDPR]&gdpr_consent=[GDPR_CONSENT]&usp=[US_PRIVACY]',
           interval: 5000, // ad request interval after AdImpression
           retryInterval: 10000 // ad request retry interval after AdError
         },
@@ -41,8 +41,8 @@
           retryInterval: 10000
         },
       },
-      gdpr: false, // if true check GDPR (EU)
-      ccpa: false, // if true check CCPA (US Privacy)
+      gdpr: true, // if true check GDPR (EU)
+      usp: true, // if true check CCPA (US Privacy)
       schain: { // Supply Chain Object
         ver: '1.0',
         complete: 1,

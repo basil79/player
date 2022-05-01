@@ -1,43 +1,45 @@
-// GDPR
-let gdprApplies;
+// USP
 let consentString = '';
 let triesLeft = 5;
 const cmpCallbacks = {};
-// version 2.0
+const uspVersion = 1;
 
 function lookupConsent() {
   consentString = '';
-  if(!window.__tcfapi && window !== window.top) {
+  if(!window.__uspapi && window !== window.top) {
+    // Find the CMP frame
     let frame = window;
     let cmpFrame;
     while (!cmpFrame) {
       try {
-        if(frame.frames['__tcfapiLocator']) cmpFrame = frame;
+        if(frame.frames['__uspapiLocator']) cmpFrame = frame;
       } catch (e) {}
 
       if(frame === window.top) break;
       frame = frame.parent;
     }
 
-    window.__tcfapi = function(cmd, version, callback, arg) {
+    // Setup a __uspapi function to do the postMessage and stash the callback.
+    // This function behaves (from the caller's perspective)
+    // identically to the same frame __uspapi call
+    window.__uspapi = function(cmd, version, callback) {
       if(!cmpFrame) {
         callback({ msg: 'CMP not found' }, false);
-      } else {
-        const callId = Math.random() + '';
-        const msg = {
-          __tcfapiCall: {
-            command: cmd,
-            parameter: arg,
-            version,
-            callId
-          }
-        };
-
-        cmpCallbacks[callId] = callback;
-        cmpFrame.postMessage(msg, '*');
+        return;
       }
+      const callId = Math.random() + '';
+      const msg = {
+        __uspapiCall: {
+          command: cmd,
+          version,
+          callId
+        }
+      };
+      cmpCallbacks[callId] = callback;
+      cmpFrame.postMessage(msg, '*');
     }
 
+    // When receive message, call the stashed callback
     window.addEventListener('message', function(event) {
       let data;
       if(typeof event.data === 'string') {
@@ -48,8 +50,8 @@ function lookupConsent() {
         data = event.data;
       }
 
-      if(data && data.__tcfapiReturn) {
-        const r = data.__tcfapiReturn;
+      if(data && data.__uspapiReturn) {
+        const r = data.__uspapiReturn;
         if(r && cmpCallbacks.hasOwnProperty(r.callId)) {
           try {
             cmpCallbacks[r.callId](
@@ -65,31 +67,24 @@ function lookupConsent() {
 
   }
 
-  if(typeof window.__tcfapi !== 'function') {
+  if(typeof window.__uspapi !== 'function') {
     if(triesLeft-- > 0) {
       window.setTimeout(lookupConsent, 1200);
     } else {
       // There's no CMP on the page
-      console.log('GDPR', 'There\'s no CMP on the page');
+      console.log('CCPA', 'There\'s no CMP on the page');
     }
     return;
   }
 
-  window.__tcfapi('ping', 2, (pingReturn, success) => {
+  window.__uspapi('getUSPData', uspVersion, (uspData, success) => {
     if(success) {
-      console.log('GDPR', 'Ping', pingReturn);
-    }
-  });
-
-  window.__tcfapi('getTCData', 2, (tcData, success) => {
-    if(success) {
-      gdprApplies = tcData.gdprApplies;
-      consentString = tcData.tcString;
-      console.log('GDPR', tcData);
+      consentString = uspData.uspString;
+      console.log('CCPA', uspData);
     } else {
       if(triesLeft-- == 0) {
         // There's no CMP on the page
-        console.log('GDPR', 'There\'s no CMP on the page');
+        console.log('CCPA', 'There\'s no CMP on the page');
       } else {
         window.setTimeout(lookupConsent, 1200);
       }
@@ -106,6 +101,5 @@ function getConsentString() {
 
 export {
   lookupConsent,
-  getConsentString,
-  gdprApplies
+  getConsentString
 }
