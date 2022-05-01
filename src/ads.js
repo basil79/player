@@ -10,7 +10,7 @@ import {
 } from './utils';
 import {IS_IPHONE, IS_MOBILE_AND_TABLET} from './browser';
 import * as gdpr from './gdpr';
-import * as ccpa from './ccpa';
+import * as usp from './usp';
 import {AdsManager} from 'ads-manager';
 
 const Ads = function(player, adContainer, options) {
@@ -44,7 +44,7 @@ const Ads = function(player, adContainer, options) {
       }
     },
     gdpr: false, // if true check GDPR (EU)
-    ccpa: false, // if true check CCPA (US Privacy)
+    usp: false, // if true check CCPA (US Privacy)
     schain: null, // Supply Chain
     customMacros: {} // Custom Macros
   }, options);
@@ -56,9 +56,13 @@ const Ads = function(player, adContainer, options) {
   this.isAdPlaying = false;
 
   // GDPR
-  gdpr.lookupConsent();
-  // CCPA
-  ccpa.lookupConsent();
+  if(this._options.gdpr) {
+    gdpr.lookupConsent();
+  }
+  // CCPA (US privacy)
+  if(this._options.usp) {
+    usp.lookupConsent();
+  }
 
   if(this._adContainer) {
     // Initialize ads manager
@@ -310,9 +314,9 @@ Ads.prototype.getMacros = function() {
     'UTM': '', // TODO: utm params
     'DURATION': this._player.getDuration(), // video duration length in seconds
     'IS_VISIBLE': this._player.visible() ? 1 : 0, // is visible
-    'GDPR': false, // this._options.gdpr, // GDPR - A flag to indicate user is in the European Union and consent applies
-    'GDPR_CONSENT': '', // this._options.consent, // GDPR_CONSENT - A consent string passed from various Consent Management Platforms (CMP's). Also accept numeric value for CTV consent.
-    'US_PRIVACY': '', // this._options.usp, // CCPA - A mandatory string for all publishers in which they must pass the privacy consent for users from California
+    'GDPR': this._options.gdpr ? (gdpr.gdprApplies ? 1 : 0) : 0, // GDPR - A flag to indicate user is in the European Union and consent applies
+    'GDPR_CONSENT': this._options.gdpr ? gdpr.getConsentString() : '', // GDPR_CONSENT - A consent string passed from various Consent Management Platforms (CMP's). Also accept numeric value for CTV consent.
+    'US_PRIVACY': this._options.usp ? usp.getConsentString() : '', // CCPA - A mandatory string for all publishers in which they must pass the privacy consent for users from California
     'SCHAIN': this.getSChain(), // supply chain object
     'ABC': '', // TODO: AB test name
   }
