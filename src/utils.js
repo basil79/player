@@ -478,6 +478,15 @@ function getHostname(url) {
   }
 }
 
+function fetchWithTimeout(url, options, timeout = 20000) {
+  return new Promise.race([
+    fetch(url, options),
+    new Promise((res, rej) => {
+      setTimeout(() => rej(new Error('request rejected by timeout of ' + timeout)), timeout);
+    })
+  ]);
+}
+
 export {
   observeVisibility,
   visible,
@@ -503,5 +512,6 @@ export {
   replaceMacrosValues,
   serializeSupplyChain,
   getUrl,
-  getHostname
+  getHostname,
+  fetchWithTimeout
 }

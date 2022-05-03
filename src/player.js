@@ -27,6 +27,7 @@ import {
 import * as browser from './browser';
 import './css/styles.css';
 import Ads from './ads';
+import {IS_LIGHTHOUSE} from "./browser";
 
 const Player = function(el, options = {}, callback) {
 
@@ -269,7 +270,7 @@ Player.prototype.createVideoSlot = function() {
     }
 
     // Ads
-    if(this._options.ads) {
+    if(this._options.ads && !IS_LIGHTHOUSE) {
       console.log('ads', this._options.ads);
       this.createAdContainer();
     }
