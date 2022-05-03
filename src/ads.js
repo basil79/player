@@ -306,7 +306,7 @@ Ads.prototype.getMacros = function() {
     'TIMESTAMP': getTimestamp(), // UNIX timestamp
     'HEIGHT': this._player._videoSlot.clientHeight,
     'WIDTH': this._player._videoSlot.clientWidth,
-    'URL': getUrl(), // url
+    'URL': encodeURIComponent(getUrl()), // url
     'DOMAIN': getHostname(getUrl()), // domain aka hostname
     'USER_AGENT': encodeURIComponent(navigator.userAgent),
     'DEVICE': IS_MOBILE_AND_TABLET ? 2 : 1, // device
@@ -318,7 +318,7 @@ Ads.prototype.getMacros = function() {
     'GDPR_CONSENT': this._options.gdpr ? gdpr.getConsentString() : '', // GDPR_CONSENT - A consent string passed from various Consent Management Platforms (CMP's). Also accept numeric value for CTV consent.
     'US_PRIVACY': this._options.usp ? usp.getConsentString() : '', // CCPA - A mandatory string for all publishers in which they must pass the privacy consent for users from California
     'SCHAIN': this.getSChain(), // supply chain object
-    'ABC': '', // TODO: AB test name
+    'ABC': encodeURIComponent(this._player.getVariantName()) // ab test variant name
   }
 }
 Ads.prototype.playAd = function() {

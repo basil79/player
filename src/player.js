@@ -6,10 +6,12 @@ import {
   getMimeType,
   injectStyle,
   isFullscreen,
+  isQueryStringContains,
+  getQueryStringValue,
   observeVisibility,
   requestFullscreen,
   supportsHLS,
-  visible
+  visible, mergeObjects
 } from './utils';
 import {
   BigPlayButton,
@@ -70,6 +72,7 @@ const Player = function(el, options = {}, callback) {
 
   // Attributes
   this._attributes = {
+    variantName: '',
     sessionId: generateSessionId(),
     isReady: false,
     userActive: false,
@@ -122,8 +125,70 @@ const Player = function(el, options = {}, callback) {
     inactivityTimeout: 2000,
     stickyFloating: false,
     textTracks: null, // closed captions, subtitles
-    ads: null // ads
+    ads: null, // ads
+    abTest: null //  ab test
   }, options);
+
+  // Check AB test
+  if(this._options.abTest
+    && this._options.abTest.enabled
+    && this._options.abTest.hasOwnProperty('variants')) {
+
+    let selectedVariant = null;
+
+    const createVariantRanges = function(abTestOptions) {
+      const ranges = [];
+      let lastRange = 0;
+      if(abTestOptions) {
+        abTestOptions.variants.forEach((variant) => {
+          lastRange += variant.percentage;
+          ranges.push(lastRange);
+        });
+      }
+      return { ranges, lastRange };
+    }
+
+    const randomSelectVariants = function(abTestOptions, ranges, lastRange) {
+      let variant = null;
+      const random = Math.round(Math.random() * lastRange);
+      for(let i = 0; i < ranges.length; i++) {
+        if(random <= ranges[i]) {
+          variant = abTestOptions.variants[i];
+          break;
+        }
+      }
+      return variant;
+    }
+
+    const selectVariantByName = function(abTestOptions, variantName) {
+      let variant = null;
+      const abTestVariants = abTestOptions.variants;
+      if(variantName) {
+        variant = abTestVariants.find((currentVariant) => currentVariant.name == variantName)
+      }
+      return variant;
+    }
+    // Check for external variant name
+    let externalVariantName = null;
+
+    // Query String
+    if(isQueryStringContains('ab_test_variant_name')) {
+      externalVariantName = getQueryStringValue('ab_test_variant_name');
+    }
+    if(externalVariantName) {
+      selectedVariant = selectVariantByName(this._options.abTest, externalVariantName);
+    } else {
+      const { ranges, lastRange } = createVariantRanges(this._options.abTest);
+      selectedVariant = randomSelectVariants(this._options.abTest, ranges, lastRange);
+    }
+
+    if(selectedVariant) {
+      this._attributes.variantName = selectedVariant.name;
+      // Merge select variant options into the options
+      this._options = mergeObjects(this._options, selectedVariant.options);
+    }
+
+  }
 
   // Set attributes
   // Muted
@@ -260,7 +325,7 @@ Player.prototype.createVideoSlot = function() {
   }
 
   // TODO:
-  setTimeout(() => {
+  window.setTimeout(() => {
     this._attributes.isReady = true;
     Players.push(this);
     // Player ready callback
@@ -270,9 +335,10 @@ Player.prototype.createVideoSlot = function() {
     }
 
     // Ads
-    if(this._options.ads && !IS_LIGHTHOUSE) {
-      console.log('ads', this._options.ads);
+    if(this._options.ads && this._options.ads.enabled && !IS_LIGHTHOUSE) {
       this.createAdContainer();
+    } else {
+      console.log('no ads');
     }
 
     this.onPlayerReady();
@@ -965,6 +1031,9 @@ Player.prototype.getWidth = function() {
 }
 Player.prototype.getHeight = function() {
   return this._el.clientHeight;
+}
+Player.prototype.getVariantName = function() {
+  return this._attributes.variantName;
 }
 Player.prototype.destroy = function() {
   // TODO: destroy

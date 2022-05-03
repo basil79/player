@@ -487,6 +487,29 @@ function fetchWithTimeout(url, options, timeout = 20000) {
   ]);
 }
 
+function isQueryStringContains(param, url = window.location.href) {
+  return url.includes(param);
+}
+
+function getQueryStringValue(param, url = window.location.href, def = undefined) {
+  let value = null;
+  try {
+    const params = (new URL(url)).searchParams;
+    value = params.get(param);
+  } catch (e) {}
+  return value || def;
+}
+
+function mergeObjects(target, source) {
+  for(const key of Object.keys(source)) {
+    if(source[key] instanceof Object) {
+      Object.assign(source[key], mergeObjects((target && Object.keys(target).length ? target : {})[key], source[key]));
+    }
+  }
+  Object.assign(target || {}, source);
+  return target;
+}
+
 export {
   observeVisibility,
   visible,
@@ -513,5 +536,8 @@ export {
   serializeSupplyChain,
   getUrl,
   getHostname,
-  fetchWithTimeout
+  fetchWithTimeout,
+  isQueryStringContains,
+  getQueryStringValue,
+  mergeObjects
 }
