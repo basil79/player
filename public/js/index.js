@@ -17,9 +17,10 @@
     textTracks: {},
     stickyFloating: false, // TODO: position, close button, margins
     ads: {
+      enabled: true,
       desktop: {
         inView: {
-          vastUrl: 'https://v.adserve.tv/pg/vast-vpaid.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]&ua=[USER_AGENT]&dnt=[DNT]&dev=[DEVICE]&domain=[DOMAIN]&url=[URL]&categories=[CATEGORIES]&tags=[TAGS]&gdpr=[GDPR]&gdpr_consent=[GDPR_CONSENT]&usp=[US_PRIVACY]',
+          vastUrl: 'https://v.adserve.tv/pg/vast-vpaid.xml?cb=[CACHEBUSTER]&ts=[TIMESTAMP]&w=[WIDTH]&h=[HEIGHT]&schain=[SCHAIN]&dur=[DURATION]&v=[IS_VISIBLE]&ua=[USER_AGENT]&dnt=[DNT]&dev=[DEVICE]&domain=[DOMAIN]&url=[URL]&categories=[CATEGORIES]&tags=[TAGS]&gdpr=[GDPR]&gdpr_consent=[GDPR_CONSENT]&usp=[US_PRIVACY]&ab=[ABC]',
           interval: 5000, // ad request interval after AdImpression
           retryInterval: 10000 // ad request retry interval after AdError
         },
@@ -67,7 +68,25 @@
         'TAGS': '1,2,3'
       }
     },
-    abTest: {} // AB Test
+    abTest: {
+      enabled: true,
+      variants: [{
+        name: 'localhost|A|50',
+        percentage: 50,
+        options: {}
+      }, {
+        name: 'localhost|B|50',
+        percentage: 50,
+        options: {
+          title: 'Title',
+          src: 'https://cdn.7pass.de/5e709c4c696a0a5e2a0053c4/assets/imgs/splash-8cedc0a51c85ea851875f15fb2831ba963fe3577b916370c890f209a210ff2cd.mp4',
+          controls: false,
+          ads: {
+            enabled: false
+          }
+        }
+      }]
+    } // AB Test
   }, function() {
     // Play
     this.play();
