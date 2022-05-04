@@ -240,15 +240,6 @@ const Player = function(el, options = {}, callback) {
     this.onVisibilityChange();
   });
 
-  // Fullscreen change
-  document.addEventListener('fullscreenchange', () => {
-    this.onFullscreenChange();
-  });
-  // Webkit Fullscreen change
-  document.addEventListener('webkitfullscreenchange', () => {
-    this.onFullscreenChange();
-  });
-
   // Tab change, document hidden
   // TODO: 1 time
   document.addEventListener('visibilitychange', () => {
@@ -290,6 +281,27 @@ Player.prototype.createVideoSlot = function() {
   }
   // Append video slot
   this._slot.appendChild(this._videoSlot);
+
+  // Fullscreen change
+  // iOS
+  if(browser.IS_IOS) {
+    this._videoSlot.addEventListener('webkitbeginfullscreen', () => {
+      this.onFullscreenChange();
+    });
+    this._videoSlot.addEventListener('webkitendfullscreen', () => {
+      this.onFullscreenChange();
+    });
+  } else {
+    document.addEventListener('fullscreenchange', () => {
+      this.onFullscreenChange();
+    });
+    document.addEventListener('webkitfullscreenchange', () => {
+      this.onFullscreenChange();
+    });
+    document.addEventListener('mozfullscreenchange', () => {
+      this.onFullscreenChange();
+    });
+  }
 
   // Create resizer
   this._resizer = document.createElement('iframe');
@@ -593,7 +605,7 @@ Player.prototype.onPlayerUserInactive = function() {
   }
 }
 Player.prototype.onFullscreenChange = function() {
-  this._attributes.fullscreen = isFullscreen(document);
+  this._attributes.fullscreen = isFullscreen(document, this._videoSlot);
   this._fullscreenButton && this._fullscreenButton.setState(this._attributes.fullscreen);
   this.onPlayerFullscreenChange(this._attributes.fullscreen);
 }
@@ -879,10 +891,10 @@ Player.prototype.setSrc = function(source) {
     // Fullscreen button
     if(this._fullscreenButton) {
       this._fullscreenButton.onclick = () => {
-        if(isFullscreen(document)) {
-          existFullscreen(document);
+        if(this.fullscreen()) {
+          this.exitFullscreen()
         } else {
-          requestFullscreen(this._el);
+          this.requestFullscreen()
         }
       }
     }
@@ -1014,16 +1026,16 @@ Player.prototype.hidden = function() {
   return this._attributes.hidden;
 }
 Player.prototype.fullscreen = function() {
-  return isFullscreen(document); //this._attributes.fullscreen;
+  return this._videoSlot && isFullscreen(document, this._videoSlot);
 }
 Player.prototype.requestFullscreen = function() {
-  if(this._videoSlot && this._attributes.src && !isFullscreen(document)) {
-    requestFullscreen(this._el);
+  if(this._videoSlot && this._attributes.src && !isFullscreen(document, this._videoSlot)) {
+    requestFullscreen(this._el, this._videoSlot);
   }
 }
 Player.prototype.exitFullscreen = function() {
-  if(this._videoSlot && this._attributes.src && isFullscreen(document)) {
-    existFullscreen(document);
+  if(this._videoSlot && this._attributes.src && isFullscreen(document, this._videoSlot)) {
+    existFullscreen(document, this._videoSlot);
   }
 }
 Player.prototype.getWidth = function() {

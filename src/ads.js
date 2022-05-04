@@ -8,7 +8,7 @@ import {
   replaceMacrosValues,
   serializeSupplyChain, getHostname
 } from './utils';
-import {IS_IPHONE, IS_MOBILE_AND_TABLET} from './browser';
+import {IS_IOS, IS_IPHONE, IS_MOBILE_AND_TABLET} from './browser';
 import * as gdpr from './gdpr';
 import * as usp from './usp';
 import {AdsManager} from 'ads-manager';
@@ -256,7 +256,7 @@ Ads.prototype.checkIfPlayAd = function() {
     this.playAd();
   }
    */
-  if(IS_IPHONE && this._player.fullscreen()) {
+  if(IS_IOS && this._player.fullscreen()) {
     return;
   }
 
