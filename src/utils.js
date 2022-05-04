@@ -99,27 +99,46 @@ function millisecondsToSeconds(milliseconds) {
   return Math.floor(milliseconds / 1000);
 }
 
-function isFullscreen(el) {
-  return hasFullscreen(el) ? true : false
+function isFullscreen(el, video) {
+  return hasFullscreen(el, video) ? true : false
 }
 
-function hasFullscreen(el) {
-  if('fullscreenElement' in el) return el.fullscreenElement;
-  if('webkitFullscreenElement' in el) return el.webkitFullscreenElement;
+function hasFullscreen(el, video) {
+  if(browser.IS_IOS) return video.webkitDisplayingFullscreen;
+  if(el.fullscreenElement
+    || el.webkitFullscreenElement
+    || el.mozFullScreenElement) {
+    return true;
+  }
   return false;
 }
 
-function requestFullscreen(el) {
-  if(browser.IS_IPHONE) return el.querySelector('video').webkitEnterFullscreen();
-  if('requestFullscreen' in el) return el.requestFullscreen();
-  if('webkitRequestFullscreen' in el) return el.webkitRequestFullscreen();
-  return false;
+function requestFullscreen(el, video) {
+  if(browser.IS_IOS) {
+    video.webkitEnterFullscreen();
+  } else {
+    if ('requestFullscreen' in el) {
+      el.requestFullscreen();
+    } else if ('webkitRequestFullscreen' in el) {
+      el.webkitRequestFullscreen();
+    } else if ('mozRequestFullScreen' in el) {
+      el.mozRequestFullScreen()
+    }
+  }
 }
 
-function existFullscreen(el) {
-  if('exitFullscreen' in el) return el.exitFullscreen();
-  if('webkitExitFullscreen' in el) return el.webkitExitFullscreen();
-  return false;
+function existFullscreen(el, video) {
+  if(browser.IS_IOS) {
+    video.webkitExitFullscreen();
+  } else {
+    if ('exitFullscreen' in el) {
+      el.exitFullscreen();
+    } else if ('webkitExitFullscreen' in el) {
+      el.webkitExitFullscreen();
+    } else if ('mozCancelFullScreen' in el) {
+      el.mozCancelFullScreen();
+    }
+  }
 }
 
 const ASPECT_RATIOS = {

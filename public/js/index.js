@@ -96,6 +96,9 @@
   });
   player1.addEventListener('PlayerFullscreenChange', function() {
     console.log('player 1 fullscreen change', player1.fullscreen());
+    if(!player1.fullscreen() && player1.paused()) {
+      player1.play();
+    }
   });
   player1.addEventListener('PlayerVideoComplete', function() {
     console.log('player 1 video complete');
@@ -108,11 +111,10 @@
   });
 
 
+  /*
   // player 2
   const player2 = new adserve.tv.Player(document.getElementById('player2'), {
     title: 'Elephants Dream',
-    /*width: 320,
-    height: 180*/
   }, function() {
     // Play
     // MPEG-DASH
@@ -123,8 +125,9 @@
   player2.addEventListener('PlayerError', function(message) {
     console.log('player 2 error', message);
   });
+   */
 
-
+  /*
   // player 3
   const player3 = new adserve.tv.Player(document.getElementById('player3'), {
     aspectRatio: '1:1',
@@ -214,6 +217,7 @@
   player5.addEventListener('PlayerError', function(message) {
     console.log('player 5 error', message);
   });
+  */
 
   /*
   // player 6
