@@ -64,8 +64,31 @@ function getFileExtension(path) {
   return '';
 }
 
-function supportsHLS() {
-  return document.createElement('video').canPlayType('application/x-mpegurl');
+function supportsNativeHls() {
+  const video = document.createElement('video');
+  // HLS manifests can go by many mime-types
+  const canPlay = [
+    // Apple santioned
+    'application/vnd.apple.mpegurl',
+    // Apple sanctioned for backwards compatibility
+    'audio/mpegurl',
+    // Very common
+    'audio/x-mpegurl',
+    // Very common
+    'application/x-mpegurl',
+    // Included for completeness
+    'video/x-mpegurl',
+    'video/mpegurl',
+    'application/mpegurl'
+  ];
+
+  return canPlay.some(function(canItPlay) {
+    return (/maybe|probably/i).test(video.canPlayType(canItPlay));
+  });
+}
+
+function supportsNativeDash() {
+  return (/maybe|probably/i).test(document.createElement('video').canPlayType('application/dash+xml'));
 }
 
 function toHHMMSS(seconds) {
@@ -498,7 +521,7 @@ function getHostname(url) {
 }
 
 function fetchWithTimeout(url, options, timeout = 20000) {
-  return new Promise.race([
+  return Promise.race([
     fetch(url, options),
     new Promise((res, rej) => {
       setTimeout(() => rej(new Error('request rejected by timeout of ' + timeout)), timeout);
@@ -535,7 +558,8 @@ export {
   MIME_TYPES,
   getMimeType,
   getFileExtension,
-  supportsHLS,
+  supportsNativeHls,
+  supportsNativeDash,
   toHHMMSS,
   getBuffer,
   getRunTime,

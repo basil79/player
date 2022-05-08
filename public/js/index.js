@@ -79,8 +79,14 @@
         percentage: 50,
         options: {
           title: 'Title',
-          src: 'https://cdn.7pass.de/5e709c4c696a0a5e2a0053c4/assets/imgs/splash-8cedc0a51c85ea851875f15fb2831ba963fe3577b916370c890f209a210ff2cd.mp4',
-          controls: false,
+          src: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+          preload: 'none',
+          //src: 'https://test-streams.mux.dev/x36xhzz/url_2/193039199_mp4_h264_aac_ld_7.m3u8',
+          //src: 'https://s3.amazonaws.com/_bc_dml/example-content/bipbop-advanced/bipbop_16x9_variant.m3u8', // 'application/x-mpegURL'
+          //src: 'https://d2zihajmogu5jn.cloudfront.net/ts-fmp4/index.m3u8',
+          //src: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd',
+          //src: 'https://cdn.7pass.de/5e709c4c696a0a5e2a0053c4/assets/imgs/splash-8cedc0a51c85ea851875f15fb2831ba963fe3577b916370c890f209a210ff2cd.mp4',
+          controls: true,
           ads: {
             enabled: false
           }
