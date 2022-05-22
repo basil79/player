@@ -8,7 +8,7 @@ import {
   replaceMacrosValues,
   serializeSupplyChain, getHostname
 } from './utils';
-import {IS_IOS, IS_IPHONE, IS_MOBILE_AND_TABLET} from './browser';
+import {IS_IOS, IS_MOBILE_AND_TABLET} from './browser';
 import * as gdpr from './gdpr';
 import * as usp from './usp';
 import {AdsManager} from 'ads-manager';

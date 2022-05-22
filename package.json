@@ -44,10 +44,7 @@
   "author": "Basil Goldman",
   "license": "Apache-2.0",
   "dependencies": {
-    "ads-manager": "^1.1.3",
-    "m3u8-parser": "^4.7.1",
-    "mpd-parser": "^0.21.1",
-    "mux.js": "^6.0.1"
+    "ads-manager": "^1.1.3"
   },
   "devDependencies": {
     "@babel/core": "^7.16.5",
