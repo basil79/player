@@ -32,7 +32,6 @@ import * as browser from './browser';
 import './css/styles.css';
 import Ads from './ads';
 import {IS_LIGHTHOUSE} from './browser';
-//import {parseManifest, setupInitialPlaylist} from './http-streaming';
 
 const Player = function(el, options = {}, callback) {
 
@@ -716,49 +715,12 @@ Player.prototype.setSrc = function(source) {
       && !supportsNativeHls()) {
       console.log('source is HLS, this browser does not support it, requires HLS plugin');
 
-      /*
-      // TODO: withCredentials
-      console.log('manifest', source);
-      fetch(source)
-        .then(res => res.text())
-        .then(manifestString => {
-          console.log(manifestString);
-          const manifest = parseManifest({
-            manifestString,
-            customTagParsers: [],
-            customTagMappers: [],
-            experimentalLLHLS: false
-          });
-          console.log(manifest);
-          console.log(window.URL.createObjectURL(setupInitialPlaylist(manifest)))
-          this._attributes.src = window.URL.createObjectURL(setupInitialPlaylist(manifest));
-        })
-        .catch(err => {
-          console.log(err);
-        });
-       */
-
       return;
     }
     // Check for MPEG-DASH
     if(this._attributes.mimeType === 'application/dash+xml'
       && !supportsNativeDash()) {
       console.log('source is MPEG-DASH, this browser does not support it, requires MPEG-DASH plugin');
-
-      /*
-      // TODO:
-      console.log('manifest', source);
-      fetch(source)
-        .then(res => res.text())
-        .then(manifest => {
-          console.log(manifest);
-          const parsedManifest = MpdParser(manifest, { manifestUrl: source });
-          console.log(parsedManifest);
-        })
-        .catch(err => {
-          console.log(err);
-        });
-       */
 
       return;
     }
