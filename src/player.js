@@ -128,6 +128,7 @@ const Player = function(el, options = {}, callback) {
     stickyFloating: false,
     textTracks: null, // closed captions, subtitles
     ads: null, // ads
+    timeRanges: null,
     abTest: null //  ab test
   }, options);
 
@@ -216,6 +217,50 @@ const Player = function(el, options = {}, callback) {
   // Inactivity Timeout
   if(this._options.inactivityTimeout) {
     this._attributes.inactivityTimeout = this._options.inactivityTimeout;
+  }
+
+  // Time Ranges
+  if(this._options.timeRanges
+    && this._options.timeRanges.length != 0) {
+    const ranges = this._options.timeRanges.filter(item => item.enabled);
+    if(!ranges.length) return;
+
+    const parseTime = (time) => {
+      if(!time) return NaN;
+      const tokens = time.split(':');
+      //console.log(tokens);
+      return (
+        parseInt(tokens[0] || '0') * 3600 +
+        parseInt(tokens[1] || '0') * 60 +
+        parseInt(tokens[2] || '0')
+      );
+    }
+
+    setInterval(() => {
+      const date = new Date();
+      const hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+      const seconds = date.getUTCSeconds();
+      //console.log(hours, minutes, seconds);
+      const time = hours * 3600 + minutes * 60 + seconds;
+      //console.log(time);
+
+      const range = ranges.find((item) => {
+        const from = parseTime(item.range[0]);
+        const to = parseTime(item.range[1]);
+        if(!isNaN(from) && !isNaN(to)) {
+          if(from <= to) {
+            return time >= from && time <= to;
+          }
+          return time <= to || time >= from;
+        }
+      });
+
+      if(range) {
+        console.log(range);
+      }
+
+    }, 1000);
   }
 
   this.EVENTS = {
