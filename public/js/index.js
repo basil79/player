@@ -68,6 +68,33 @@
         'TAGS': '1,2,3'
       }
     },
+    /*
+    timeRanges: [{
+      enabled: true,
+      range: ['10:30', '10:32'], // Time range in UTC, [from, to] - example 19:00 EDT (New York) is 23:00 UTC
+      options: {
+        ads: {
+          desktop: {
+            inView: {
+              interval: 2500
+            }
+          }
+        }
+      }
+    }, {
+      enabled: true,
+      range: ['23:00', '00:00'], // Time range in UTC, [from, to] - example 19:00 EDT (New York) is 23:00 UTC
+      options: {
+        ads: {
+          desktop: {
+            inView: {
+              interval: 2500
+            }
+          }
+        }
+      }
+    }],
+     */
     abTest: {
       enabled: true,
       variants: [{
@@ -92,7 +119,7 @@
           }
         }
       }]
-    } // AB Test
+    }
   }, function() {
     // Play
     this.play();
