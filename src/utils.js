@@ -512,6 +512,53 @@ function getUrl() {
   }
 }
 
+const DEFAULT_LOCATION = 'http://example.com';
+function resolveUrl(baseUrl, relativeUrl) {
+  // return early if we don't need to resolve
+  if (/^[a-z]+:/i.test(relativeUrl)) {
+    return relativeUrl;
+  } // if baseUrl is a data URI, ignore it and resolve everything relative to window.location
+
+  if (/^data:/.test(baseUrl)) {
+    baseUrl = window.location && window.location.href || '';
+  } // IE11 supports URL but not the URL constructor
+  // feature detect the behavior we want
+
+  const protocolLess = /^\/\//.test(baseUrl); // remove location if window.location isn't available (i.e. we're in node)
+  // and if baseUrl isn't an absolute url
+  const removeLocation = !window.location && !/\/\//i.test(baseUrl); // if the base URL is relative then combine with the current location
+
+  baseUrl = new window.URL(baseUrl, window.location || DEFAULT_LOCATION);
+
+  const newUrl = new URL(relativeUrl, baseUrl); // if we're a protocol-less url, remove the protocol
+  // and if we're location-less, remove the location
+  // otherwise, return the url unmodified
+
+  if (removeLocation) {
+    return newUrl.href.slice(DEFAULT_LOCATION.length);
+  } else if (protocolLess) {
+    return newUrl.href.slice(newUrl.protocol.length);
+  }
+
+  return newUrl.href;
+}
+
+const resolveManifestRedirect = (handleManifestRedirect, url, req) => {
+  // To understand how the responseURL below is set and generated:
+  // - https://fetch.spec.whatwg.org/#concept-response-url
+  // - https://fetch.spec.whatwg.org/#atomic-http-redirect-handling
+  if (
+    handleManifestRedirect &&
+    req &&
+    req.responseURL &&
+    url !== req.responseURL
+  ) {
+    return req.responseURL;
+  }
+
+  return url;
+};
+
 function getHostname(url) {
   try {
     return new URL(url).hostname;
@@ -527,6 +574,35 @@ function fetchWithTimeout(url, options, timeout = 20000) {
       setTimeout(() => rej(new Error('request rejected by timeout of ' + timeout)), timeout);
     })
   ]);
+}
+
+function xhr(options, callback) {
+  const method = options.method || 'GET';
+  const uri = options.uri;
+
+  let aborted = false;
+  const request = new XMLHttpRequest();
+
+  request.onabort = function () {
+    aborted = true;
+  };
+  request.open(method, uri);
+  request.withCredentials = !!options.withCredentials;
+
+  function handleLoad() {
+    if (aborted) return;
+    return callback(null, request);
+  }
+
+  function handleError(e) {
+    return callback(e);
+  }
+
+  request.onload = handleLoad
+  request.onerror = handleError;
+
+  request.send();
+  return request;
 }
 
 function isQueryStringContains(param, url = window.location.href) {
@@ -578,7 +654,10 @@ export {
   replaceMacrosValues,
   serializeSupplyChain,
   getUrl,
+  resolveUrl,
+  resolveManifestRedirect,
   getHostname,
+  xhr,
   fetchWithTimeout,
   isQueryStringContains,
   getQueryStringValue,
