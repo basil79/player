@@ -32,6 +32,7 @@ import * as browser from './browser';
 import './css/styles.css';
 import Ads from './ads';
 import {IS_LIGHTHOUSE} from './browser';
+import PlaylistLoader from './playlist-loader';
 
 const Player = function(el, options = {}, callback) {
 
@@ -760,7 +761,12 @@ Player.prototype.setSrc = function(source) {
       && !supportsNativeHls()) {
       console.log('source is HLS, this browser does not support it, requires HLS plugin');
 
-      return;
+
+      const playlistLoader = new PlaylistLoader(source);
+      playlistLoader.start();
+
+
+      //return;
     }
     // Check for MPEG-DASH
     if(this._attributes.mimeType === 'application/dash+xml'
@@ -894,8 +900,11 @@ Player.prototype.setSrc = function(source) {
       this.onPlayerError('The media could not be loaded, either because the server or network failed or because the format is not supported.');
     });
 
-    // Set source
-    this._videoSlot.setAttribute('src', this._attributes.src);
+
+    setTimeout(() => {
+      // Set source
+      this._videoSlot.setAttribute('src', this._attributes.src);
+    }, 1500);
 
     // Autoplay
     if(this._options.autoplay === true) {

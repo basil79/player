@@ -106,7 +106,9 @@
         percentage: 50,
         options: {
           title: 'Title',
-          src: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
+          src: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', // 0
+          //src: 'https://test-streams.mux.dev/x36xhzz/url_0/193039199_mp4_h264_aac_hd_7.m3u8', // 1
+          //src: 'https://di-mi68vc46.leasewebultracdn.com/storage/box2/vm_videos/0036/36751/hls/640x360/index.m3u8',
           preload: 'none',
           //src: 'https://test-streams.mux.dev/x36xhzz/url_2/193039199_mp4_h264_aac_ld_7.m3u8',
           //src: 'https://s3.amazonaws.com/_bc_dml/example-content/bipbop-advanced/bipbop_16x9_variant.m3u8', // 'application/x-mpegURL'
@@ -272,6 +274,5 @@
     console.log('player6 - ready');
   });
    */
-
 
 })()
