@@ -7,9 +7,11 @@ import {
 } from './manifest';
 import {mergeObjects, resolveManifestRedirect, resolveUrl, xhr} from './utils';
 import {getKnownPartCount} from './playlist';
+import EventBus from './event-bus';
 
-export default class PlaylistLoader {
+export default class PlaylistLoader extends EventBus {
   constructor(src, options = {}) {
+    super();
 
     if(!src) {
       throw new Error('A non-empty playlist URL or object is required');
@@ -33,6 +35,7 @@ export default class PlaylistLoader {
 
     // live playlist staleness timeout
     this._handleMediaupdatetimeout = this._handleMediaupdatetimeout.bind(this);
+    this.on('mediaupdatetimeout', this._handleMediaupdatetimeout);
   }
   _handleMediaupdatetimeout() {
     if (this.state !== 'HAVE_METADATA') {
@@ -90,7 +93,7 @@ export default class PlaylistLoader {
       code: (xhr.status >= 500) ? 4 : 2
     };
 
-    console.log('> error');
+    this.trigger('error');
   }
   _updateMediaUpdateTimeout(delay) {
     if (this.mediaUpdateTimeout) {
@@ -105,9 +108,17 @@ export default class PlaylistLoader {
 
     this.mediaUpdateTimeout = window.setTimeout(() => {
       this.mediaUpdateTimeout = null;
-      console.log(' > mediaupdatetimeout');
+      this.trigger('mediaupdatetimeout');
       this._updateMediaUpdateTimeout(delay);
     }, delay);
+  }
+  dispose() {
+    this.trigger('dispose');
+    this.stopRequest();
+    window.clearTimeout(this.mediaUpdateTimeout);
+    window.clearTimeout(this.finalRenditionTimeout);
+
+    this.off();
   }
   stopRequest() {
     if (this.request) {
@@ -147,7 +158,7 @@ export default class PlaylistLoader {
         if (this.state === 'HAVE_NOTHING') {
           this.started = false;
         }
-        return console.log('> error');
+        return this.trigger('error');
       }
 
       this.src = resolveManifestRedirect(this.handleManifestRedirects, this.src, req);
@@ -210,9 +221,9 @@ export default class PlaylistLoader {
     }
 
     if (media && !media.endList) {
-      console.log('> mediaupdatetimeout');
+      this.trigger('mediaupdatetimeout');
     } else {
-      console.log('> loadedplaylist');
+      this.trigger('loadedplaylist');
     }
   }
   _parseManifest({url, manifestString}) {
@@ -246,7 +257,7 @@ export default class PlaylistLoader {
           resolveSegmentUris(segment, playlist.resolvedUri);
         });
       });
-      console.log('> loadedplaylist');
+      this.trigger('loadedplaylist');
       console.log('master', this.master);
 
       if (!this.request) {
@@ -274,7 +285,7 @@ export default class PlaylistLoader {
       url: uri,
       id: this.master.playlists[0].id
     });
-    console.log('> loadedmetadata');
+    this.trigger('loadedmetadata');
 
 
 
@@ -404,12 +415,12 @@ export default class PlaylistLoader {
       this.master = update;
       this._media = this.master.playlists[id];
     } else {
-      console.log('> playlistunchanged');
+      this.trigger('playlistunchanged');
     }
 
     this._updateMediaUpdateTimeout(refreshDelay(this.media(), !!update));
 
-    console.log('> loadedplaylist');
+    this.trigger('loadedplaylist');
   }
   media(playlist, shouldDelay) {
     // getter
@@ -462,7 +473,7 @@ export default class PlaylistLoader {
 
       // trigger media change if the active media has been updated
       if (mediaChange) {
-        console.log('> mediachanging');
+        this.trigger('mediachanging');
 
         if (startingState === 'HAVE_MASTER') {
           // The initial playlist was a master manifest, and the first media selected was
@@ -470,9 +481,9 @@ export default class PlaylistLoader {
           // source object (rather than just a URL). Therefore, since the media playlist
           // doesn't need to be requested, loadedmetadata won't trigger as part of the
           // normal flow, and needs an explicit trigger here.
-          console.log('> loadedmetadata');
+          this.trigger('loadedmetadata');
         } else {
-          console.log('> mediachange');
+          this.trigger('mediachange');
         }
       }
       return;
@@ -506,7 +517,7 @@ export default class PlaylistLoader {
 
     // request the new playlist
     if (this._media) {
-      console.log(' > mediachanging');
+      this.trigger('mediachanging');
     }
 
     this._pendingMedia = playlist;
@@ -539,9 +550,9 @@ export default class PlaylistLoader {
 
       // fire loadedmetadata the first time a media playlist is loaded
       if (startingState === 'HAVE_MASTER') {
-        console.log('> loadedmetadata');
+        this.trigger('loadedmetadata');
       } else {
-        console.log('> mediachange');
+        this.trigger('mediachange');
       }
     });
   }

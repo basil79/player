@@ -54,7 +54,7 @@ function getMimeType(src = '') {
 }
 
 function getFileExtension(path) {
-  if (typeof path === 'string') {
+  if(typeof path === 'string') {
     const splitPathRe = /^(\/?)([\s\S]*?)((?:\.{1,2}|[^\/]+?)(\.([^\.\/\?]+)))(?:[\/]*|[\?].*)$/;
     const pathParts = splitPathRe.exec(path);
     if (pathParts) {
@@ -200,18 +200,18 @@ function injectStyle(id, cssContent) {
 function generateSessionId() {
   let sessionId = '';
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++)
+  for(let i = 0; i < 32; i++)
     sessionId += possible.charAt(Math.floor(Math.random() * possible.length));
 
   return sessionId;
 }
 
 function computedStyle(el, prop) {
-  if (!el || !prop) {
+  if(!el || !prop) {
     return '';
   }
 
-  if (typeof window.getComputedStyle === 'function') {
+  if(typeof window.getComputedStyle === 'function') {
     let computedStyleValue;
 
     try {
@@ -227,7 +227,7 @@ function computedStyle(el, prop) {
 }
 
 function getBoundingClientRect(el) {
-  if (el && el.getBoundingClientRect && el.parentNode) {
+  if(el && el.getBoundingClientRect && el.parentNode) {
     const rect = el.getBoundingClientRect();
     const result = {};
 
@@ -237,11 +237,11 @@ function getBoundingClientRect(el) {
       }
     });
 
-    if (!result.height) {
+    if(!result.height) {
       result.height = parseFloat(computedStyle(el, 'height'));
     }
 
-    if (!result.width) {
+    if(!result.width) {
       result.width = parseFloat(computedStyle(el, 'width'));
     }
 
@@ -250,7 +250,7 @@ function getBoundingClientRect(el) {
 }
 
 function findPosition(el) {
-  if (!el || (el && !el.offsetParent)) {
+  if(!el || (el && !el.offsetParent)) {
     return {
       left: 0,
       top: 0,
@@ -284,13 +284,13 @@ function getPointerPosition(el, event) {
     y: 0
   };
 
-  if (browser.IS_IOS) {
+  if(browser.IS_IOS) {
     let item = el;
 
-    while (item && item.nodeName.toLowerCase() !== 'html') {
+    while(item && item.nodeName.toLowerCase() !== 'html') {
       const transform = computedStyle(item, 'transform');
 
-      if (/^matrix/.test(transform)) {
+      if(/^matrix/.test(transform)) {
         const values = transform.slice(7, -1).split(/,\s/).map(Number);
 
         translated.x += values[4];
@@ -314,7 +314,7 @@ function getPointerPosition(el, event) {
   let offsetY = event.offsetY - (box.top - boxTarget.top);
   let offsetX = event.offsetX - (box.left - boxTarget.left);
 
-  if (event.changedTouches) {
+  if(event.changedTouches) {
     // TODO:
     const _box = getBoundingClientRect(el);
     offsetX = event.changedTouches[0].pageX - _box.left; //box.left;
@@ -332,7 +332,7 @@ function getPointerPosition(el, event) {
 
 function replaceMacrosValues(url, macros) {
   let replacedMacrosUrl = url;
-  for (const key in macros) {
+  for(const key in macros) {
     const value = macros[key];
     // this will match [${key}] and %%${key}%% and replace it
     replacedMacrosUrl = replacedMacrosUrl.replace(
@@ -515,7 +515,7 @@ function getUrl() {
 const DEFAULT_LOCATION = 'http://example.com';
 function resolveUrl(baseUrl, relativeUrl) {
   // return early if we don't need to resolve
-  if (/^[a-z]+:/i.test(relativeUrl)) {
+  if(/^[a-z]+:/i.test(relativeUrl)) {
     return relativeUrl;
   } // if baseUrl is a data URI, ignore it and resolve everything relative to window.location
 
@@ -534,7 +534,7 @@ function resolveUrl(baseUrl, relativeUrl) {
   // and if we're location-less, remove the location
   // otherwise, return the url unmodified
 
-  if (removeLocation) {
+  if(removeLocation) {
     return newUrl.href.slice(DEFAULT_LOCATION.length);
   } else if (protocolLess) {
     return newUrl.href.slice(newUrl.protocol.length);
@@ -547,7 +547,7 @@ const resolveManifestRedirect = (handleManifestRedirect, url, req) => {
   // To understand how the responseURL below is set and generated:
   // - https://fetch.spec.whatwg.org/#concept-response-url
   // - https://fetch.spec.whatwg.org/#atomic-http-redirect-handling
-  if (
+  if(
     handleManifestRedirect &&
     req &&
     req.responseURL &&
