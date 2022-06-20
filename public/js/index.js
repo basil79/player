@@ -106,7 +106,7 @@
         percentage: 50,
         options: {
           title: 'Title',
-          src: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', // 0
+          //src: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', // 0
           //src: 'https://test-streams.mux.dev/x36xhzz/url_0/193039199_mp4_h264_aac_hd_7.m3u8', // 1
           //src: 'https://di-mi68vc46.leasewebultracdn.com/storage/box2/vm_videos/0036/36751/hls/640x360/index.m3u8',
           preload: 'none',
@@ -114,7 +114,8 @@
           //src: 'https://s3.amazonaws.com/_bc_dml/example-content/bipbop-advanced/bipbop_16x9_variant.m3u8', // 'application/x-mpegURL'
           //src: 'https://d2zihajmogu5jn.cloudfront.net/ts-fmp4/index.m3u8',
           //src: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd',
-          //src: 'https://cdn.7pass.de/5e709c4c696a0a5e2a0053c4/assets/imgs/splash-8cedc0a51c85ea851875f15fb2831ba963fe3577b916370c890f209a210ff2cd.mp4',
+          poster: 'https://i.guim.co.uk/img/static/sys-images/Guardian/Pix/audio/video/2015/7/17/1437143214172/KP_356964_crop_1200x720.jpg?width=640&quality=85&auto=format&fit=max&s=723ea784ae21864c46aad3aae6aeda8b',
+          src: 'https://cdn.theguardian.tv/mainwebsite/2015/07/20/150716YesMen_desk.mp4',
           controls: true,
           ads: {
             enabled: false
